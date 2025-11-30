@@ -77,7 +77,7 @@ $description = 'Sistem ayarlarını yönetin';
       </div>
     </main>
     <div class="flex justify-end p-4">
-      <a href="/logout.php" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
+      <a href="../logout.php" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
     </div>
   </div>
 </body>

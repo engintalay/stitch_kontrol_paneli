@@ -23,6 +23,8 @@ function fetchItems(path = '', push = true) {
             }
             items = data.items;
             currentPath = data.current;
+                    // expose currentPath to global so page controls can read it
+                    window.currentPath = currentPath;
             renderBrowser();
             try {
                 const url = '?path=' + encodeURIComponent(currentPath);
@@ -64,6 +66,8 @@ function renderBrowser() {
     thumbLoaded = 0;
     thumbFailed = 0;
     updateThumbStatus();
+    // ensure global copy is kept in sync
+    window.currentPath = currentPath;
     items.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'item';

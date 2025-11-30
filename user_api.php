@@ -5,20 +5,35 @@ require_once __DIR__ . '/auth_check.php';
 $db = new SQLite3(__DIR__ . '/users.db');
 $db->exec('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, password TEXT, role TEXT, permissions TEXT DEFAULT "")');
 
-// Ensure compatibility with older DBs: add 'permissions' column if it's missing
+// Ensure compatibility with older DBs: add missing columns if they're missing
+$cols = [];
 try {
     $colsRes = $db->query("PRAGMA table_info('users')");
-    $cols = [];
     while ($c = $colsRes->fetchArray(SQLITE3_ASSOC)) {
         $cols[] = $c['name'];
     }
     if (!in_array('permissions', $cols)) {
-        // add the column with a default empty JSON array string for older rows
+        // add the column with a default empty JSON string for older rows
         $db->exec("ALTER TABLE users ADD COLUMN permissions TEXT DEFAULT ''");
+        $cols[] = 'permissions';
     }
+    // ensure 'password' column exists (older DBs may not have it)
+    if (!in_array('password', $cols)) {
+        $db->exec("ALTER TABLE users ADD COLUMN password TEXT DEFAULT ''");
+        $cols[] = 'password';
+    }
+    // ensure 'role' column exists
+    if (!in_array('role', $cols)) {
+        $db->exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
+        $cols[] = 'role';
+    }
+    // (password_hash, if present, is already included by PRAGMA)
 } catch (Exception $e) {
     // If migration fails, continue — queries will report errors which will be handled below
 }
+
+// Determine which password column to use when inserting/updating users
+$passwordColumn = in_array('password_hash', $cols) ? 'password_hash' : 'password';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -34,6 +49,7 @@ if ($action === 'list') {
     $q = isset($_GET['q']) ? trim($_GET['q']) : '';
     $where = $q ? 'WHERE email LIKE :q' : '';
     $stmt = $db->prepare("SELECT id, email, role, permissions FROM users $where ORDER BY id ASC");
+    if (!$stmt) error('Veritabanı hatası (listeleme hazırlanamadı).');
     if ($q) $stmt->bindValue(':q', "%$q%", SQLITE3_TEXT);
     $res = $stmt->execute();
     $users = [];
@@ -52,17 +68,21 @@ if ($action === 'add') {
     $permissions = $_POST['permissions'] ?? [];
     if (!$email || !$password) error('E-posta ve şifre zorunlu.');
     $hash = password_hash($password, PASSWORD_DEFAULT);
-    $stmt = $db->prepare('INSERT INTO users (email, password, role, permissions) VALUES (:email, :password, :role, :permissions)');
+    // Use the detected password column name (some DBs use 'password_hash')
+    $insertCols = ['email', $passwordColumn, 'role', 'permissions'];
+    $placeholders = [':email', ':password', ':role', ':permissions'];
+    $sql = 'INSERT INTO users (' . implode(', ', $insertCols) . ') VALUES (' . implode(', ', $placeholders) . ')';
+    $stmt = $db->prepare($sql);
+    if (!$stmt) error('Veritabanı hatası (ekleme hazırlanamadı): ' . $db->lastErrorMsg());
     $stmt->bindValue(':email', $email, SQLITE3_TEXT);
     $stmt->bindValue(':password', $hash, SQLITE3_TEXT);
     $stmt->bindValue(':role', $role, SQLITE3_TEXT);
     $stmt->bindValue(':permissions', json_encode($permissions), SQLITE3_TEXT);
-    try {
-        $stmt->execute();
-        echo json_encode(['ok' => true]);
-    } catch (Exception $e) {
-        error('Kullanıcı eklenemedi: ' . $e->getMessage());
+    $res = $stmt->execute();
+    if ($res === false) {
+        error('Kullanıcı eklenemedi: ' . $db->lastErrorMsg());
     }
+    echo json_encode(['ok' => true]);
     exit;
 }
 
@@ -72,6 +92,7 @@ if ($action === 'update') {
     $permissions = $_POST['permissions'] ?? [];
     if (!$id) error('ID zorunlu.');
     $stmt = $db->prepare('UPDATE users SET role = :role, permissions = :permissions WHERE id = :id');
+    if (!$stmt) error('Veritabanı hatası (güncelleme hazırlanamadı).');
     $stmt->bindValue(':role', $role, SQLITE3_TEXT);
     $stmt->bindValue(':permissions', json_encode($permissions), SQLITE3_TEXT);
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
@@ -84,6 +105,7 @@ if ($action === 'delete') {
     $id = intval($_POST['id'] ?? 0);
     if (!$id) error('ID zorunlu.');
     $stmt = $db->prepare('DELETE FROM users WHERE id = :id');
+    if (!$stmt) error('Veritabanı hatası (silme hazırlanamadı).');
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
     $stmt->execute();
     echo json_encode(['ok' => true]);

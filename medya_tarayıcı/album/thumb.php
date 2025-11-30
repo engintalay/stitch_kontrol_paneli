@@ -20,15 +20,6 @@ if (!is_dir($cacheDir)) {
 
 $isCli = (php_sapi_name() === 'cli');
 
-if (!$isCli && isset($_GET['clear_cache'])) {
-    $deleted = 0;
-    foreach (array_merge(glob($cacheDir . '/*.jpg') ?: [], glob($cacheDir . '/*.webp') ?: []) as $file) {
-        if (is_file($file) && unlink($file)) $deleted++;
-    }
-    echo "Cache temizlendi. Silinen dosya: $deleted";
-    exit;
-}
-
 if ($isCli) {
     $targetFile = isset($argv[1]) ? $argv[1] : '';
     $size = isset($argv[2]) ? intval($argv[2]) : 250;
@@ -77,6 +68,45 @@ if ($isCli) {
         http_response_code(500);
         echo $msg;
         exit;
+    }
+    // Handle cache clearing requests here so we can resolve relative paths against $baseDir
+    if (isset($_GET['clear_cache'])) {
+        $deleted = 0;
+        $clearRel = isset($_GET['path']) ? ltrim(trim($_GET['path']), '/') : '';
+        if ($clearRel === '') {
+            // delete all cache files and their meta files
+            foreach (array_merge(glob($cacheDir . '/*') ?: []) as $file) {
+                if (is_file($file) && unlink($file)) $deleted++;
+            }
+            echo "Cache temizlendi. Silinen dosya: $deleted";
+            exit;
+        } else {
+            $absClearDir = realpath($baseDir . '/' . $clearRel);
+            if (!$absClearDir || !is_dir($absClearDir)) {
+                http_response_code(400);
+                echo 'Geçersiz clear_cache path';
+                exit;
+            }
+            // Iterate cache files and use .meta sidecar to find targets under the requested folder
+            foreach (glob($cacheDir . '/*') ?: [] as $file) {
+                // only consider actual cache image files or meta files
+                if (substr($file, -5) === '.meta') continue; // handle via cache file loop
+                $metaFile = $file . '.meta';
+                if (!is_file($metaFile)) continue; // skip cache files without metadata
+                $meta = @json_decode(@file_get_contents($metaFile), true);
+                if (!is_array($meta) || empty($meta['target'])) continue;
+                $target = $meta['target'];
+                // normalize
+                $targetReal = realpath($target);
+                if ($targetReal && strpos($targetReal, $absClearDir) === 0) {
+                    if (is_file($file)) @unlink($file);
+                    if (is_file($metaFile)) @unlink($metaFile);
+                    $deleted++;
+                }
+            }
+            echo "Cache temizlendi (klasöre özel). Silinen dosya: $deleted";
+            exit;
+        }
     }
     $relPath = isset($_GET['path']) ? ltrim(trim($_GET['path']), '/') : '';
     $size = isset($_GET['size']) ? intval($_GET['size']) : 250;
@@ -179,6 +209,8 @@ if (in_array($ext, $videoExts)) {
         }
         exec($cmd, $out, $rc);
         if ($rc === 0 && file_exists($cacheFile)) {
+            // write metadata sidecar so we can delete cache per-folder later
+            @file_put_contents($cacheFile . '.meta', json_encode(['target' => $targetFile, 'size' => $size, 'format' => $outFormat]));
             // success: directly created cacheFile with ffmpeg
             if ($isCli) {
                 echo "ffmpeg doğrudan cache dosyası oluşturdu: $cacheFile\n";
@@ -274,6 +306,8 @@ if ($outFormat === 'webp' && function_exists('imagewebp')) {
     // fallback to jpeg
     imagejpeg($thumb, $cacheFile, 80);
 }
+// write metadata for the created cache file
+@file_put_contents($cacheFile . '.meta', json_encode(['target' => $targetFile, 'size' => $size, 'format' => $outFormat]));
 if ($isCli) {
     echo "Thumb oluşturuldu: $cacheFile\n";
 } else {

@@ -1,2 +1,2 @@
 # Bu dosyada medya kök dizini tutulur
-../medya
+medya

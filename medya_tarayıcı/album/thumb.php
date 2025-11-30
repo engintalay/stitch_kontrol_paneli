@@ -5,6 +5,10 @@
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    error_log("[thumb.php] PHP ERROR: $errstr in $errfile on line $errline");
+    return false;
+});
 
 $cacheDir = __DIR__ . '/.cache';
 if (!is_dir($cacheDir)) {
@@ -31,19 +35,70 @@ if ($isCli) {
     echo "[CLI] relPath: $relPath\n";
     echo "[CLI} md5 Target: $targetFile".'_'."$size)\n";
 } else {
-    $baseDir = realpath('/media');
-    $relPath = isset($_GET['path']) ? trim($_GET['path'], '/') : '';
+    // Medya kök dizinini media_root.txt dosyasından oku
+    $mediaRootFile = __DIR__ . '/media_root.txt';
+    $mediaRoot = false;
+    if (file_exists($mediaRootFile)) {
+        $lines = file($mediaRootFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '' || strpos($line, '#') === 0) continue;
+            $mediaRoot = $line;
+            break;
+        }
+        $mediaRoot = rtrim($mediaRoot, "/\\");
+    }
+    error_log('[thumb.php] mediaRoot yolu: ' . $mediaRoot);
+    if (!$mediaRoot) {
+        $msg = 'media_root.txt okunamadı veya boş.';
+        error_log('[thumb.php] ' . $msg);
+        http_response_code(500);
+        echo $msg;
+        exit;
+    }
+    // Göreli ise proje köküne göre çöz
+    if ($mediaRoot[0] !== '/') {
+        $projectRoot = realpath(__DIR__ . '/../..');
+        error_log('[thumb.php] projectRoot: ' . ($projectRoot ?: 'false'));
+        $baseDir = realpath($projectRoot . '/' . $mediaRoot);
+    } else {
+        $baseDir = realpath($mediaRoot);
+    }
+    error_log('[thumb.php] Çözümlenen baseDir yolu: ' . ($baseDir ?: 'false'));
+    if (!$baseDir || !is_dir($baseDir)) {
+        $msg = 'Medya kök dizini bulunamadı veya dizin değil: ' . $mediaRoot . ' (çözümlenen: ' . ($baseDir ?: 'false') . ')';
+        error_log('[thumb.php] ' . $msg);
+        http_response_code(500);
+        echo $msg;
+        exit;
+    }
+    if (!is_readable($baseDir)) {
+        $msg = 'Medya kök dizinine okuma izni yok: ' . $baseDir;
+        error_log('[thumb.php] ' . $msg);
+        http_response_code(500);
+        echo $msg;
+        exit;
+    }
+    $relPath = isset($_GET['path']) ? ltrim(trim($_GET['path']), '/') : '';
     $size = isset($_GET['size']) ? intval($_GET['size']) : 250;
     $targetFile = $relPath ? realpath($baseDir . '/' . $relPath) : false;
+    error_log('[thumb.php] İstenen dosya: ' . $baseDir . '/' . $relPath);
+    error_log('[thumb.php] Çözümlenen dosya: ' . ($targetFile ?: 'false'));
+    if (!$targetFile || !is_file($targetFile)) {
+        $msg = 'Dosya bulunamadı veya erişim yok: ' . ($targetFile ?: ($baseDir . '/' . $relPath));
+        error_log('[thumb.php] ' . $msg);
+    }
 }
 
 if (!$targetFile || !is_file($targetFile)) {
+    $msg = 'Dosya bulunamadı veya erişim yok: ' . ($targetFile ?: ($baseDir . '/' . $relPath));
+    error_log('[thumb.php] ' . $msg);
     if ($isCli) {
-        echo "Dosya bulunamadı veya erişim yok: $targetFile\n";
+        echo $msg . "\n";
         exit(1);
     } else {
         http_response_code(404);
-        echo 'Dosya bulunamadı veya erişim yok.';
+        echo $msg;
         exit;
     }
 }

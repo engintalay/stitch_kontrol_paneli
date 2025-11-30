@@ -14,7 +14,7 @@ if (file_exists($mediaRootFile)) {
         $mediaRoot = $line;
         break;
     }
-    $mediaRoot = rtrim($mediaRoot, "/\");
+        $mediaRoot = rtrim($mediaRoot, "/\\");
     if ($mediaRoot === '') {
         $msg = 'media_root.txt boş veya sadece açıklama satırı var';
         error_log('[media_browser.php] ' . $msg);

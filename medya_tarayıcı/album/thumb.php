@@ -38,27 +38,23 @@ if ($isCli) {
     echo "[CLI] relPath: $relPath\n";
     echo "[CLI} md5 Target: $targetFile".'_'."$size)\n";
 } else {
-    // Medya kök dizinini media_root.txt dosyasından oku
-    $mediaRootFile = __DIR__ . '/media_root.txt';
-    $mediaRoot = false;
-    if (file_exists($mediaRootFile)) {
-        $lines = file($mediaRootFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if ($line === '' || strpos($line, '#') === 0) continue;
-            $mediaRoot = $line;
-            break;
-        }
-        $mediaRoot = rtrim($mediaRoot, "/\\");
-    }
-    error_log('[thumb.php] mediaRoot yolu: ' . $mediaRoot);
+    // Medya kök dizinini ayar veritabanından oku
+    $db = new SQLite3(__DIR__ . '/../../settings.db');
+    $userId = $_SESSION['user_id'];
+    $stmt = $db->prepare('SELECT setting_value FROM user_settings WHERE user_id = :user_id AND setting_key = :key');
+    $stmt->bindValue(':user_id', $userId, SQLITE3_TEXT);
+    $stmt->bindValue(':key', 'media_root', SQLITE3_TEXT);
+    $result = $stmt->execute();
+    $mediaRoot = ($row = $result->fetchArray(SQLITE3_ASSOC)) ? $row['setting_value'] : '';
     if (!$mediaRoot) {
-        $msg = 'media_root.txt okunamadı veya boş.';
+        $msg = 'media_root not set or empty';
         error_log('[thumb.php] ' . $msg);
         http_response_code(500);
         echo $msg;
         exit;
     }
+    $mediaRoot = rtrim($mediaRoot, "/\\");
+    error_log('[thumb.php] mediaRoot yolu: ' . $mediaRoot);
     // Göreli ise proje köküne göre çöz
     if ($mediaRoot[0] !== '/') {
         $projectRoot = realpath(__DIR__ . '/../..');

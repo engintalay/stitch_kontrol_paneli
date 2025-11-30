@@ -97,23 +97,19 @@ require_once __DIR__ . '/../auth_check.php';
   </div>
 </main>
   <script>
-    // Medya kök dizini media_root.txt dosyasından dinamik olarak alınır
+    // Medya kök dizini artık veritabanından alınıyor
     <?php
-      $mediaRootFile = __DIR__ . '/album/media_root.txt';
-      $mediaRoot = '';
-      if (file_exists($mediaRootFile)) {
-        $lines = file($mediaRootFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-          $line = trim($line);
-          if ($line === '' || strpos($line, '#') === 0) continue;
-          $mediaRoot = rtrim($line, "/\\");
-          break;
-        }
-      }
+      $db = new SQLite3(__DIR__ . '/../settings.db');
+      $userId = $_SESSION['user_id'];
+      $stmt = $db->prepare('SELECT setting_value FROM user_settings WHERE user_id = :user_id AND setting_key = :key');
+      $stmt->bindValue(':user_id', $userId, SQLITE3_TEXT);
+      $stmt->bindValue(':key', 'media_root', SQLITE3_TEXT);
+      $result = $stmt->execute();
+      $mediaRoot = ($row = $result->fetchArray(SQLITE3_ASSOC)) ? $row['setting_value'] : '';
       if ($mediaRoot) {
         echo "window.MEDIA_ROOT = '" . addslashes($mediaRoot) . "';\n";
       } else {
-        echo "window.MEDIA_ROOT = '';// media_root.txt bulunamadı veya boş\n";
+        echo "window.MEDIA_ROOT = '';// media_root ayarı bulunamadı veya boş\n";
       }
     ?>
   </script>

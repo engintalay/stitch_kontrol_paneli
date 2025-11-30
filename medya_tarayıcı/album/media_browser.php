@@ -6,28 +6,27 @@ header('Content-Type: application/json');
 
 error_log('[media_browser.php] Başlatıldı');
 
-$mediaRootFile = __DIR__ . '/media_root.txt';
-
-if (file_exists($mediaRootFile)) {
-    $lines = file($mediaRootFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    $mediaRoot = '';
-    foreach ($lines as $line) {
-        $line = trim($line);
-        if ($line === '' || strpos($line, '#') === 0) continue;
-        $mediaRoot = $line;
-        break;
-    }
-    $mediaRoot = rtrim($mediaRoot, "/\\");
-    if ($mediaRoot === '') {
-        $msg = 'media_root.txt boş veya sadece açıklama satırı var';
-        error_log('[media_browser.php] ' . $msg);
-        echo json_encode(['error' => $msg]);
-        exit;
-    }
-} else {
-    echo json_encode(['error' => 'media_root.txt bulunamadı', 'file' => $mediaRootFile]);
+// Replace media_root.txt logic with database query
+$db = new SQLite3(__DIR__ . '/../../settings.db');
+$userId = $_SESSION['user_id'];
+$stmt = $db->prepare('SELECT setting_value FROM user_settings WHERE user_id = :user_id AND setting_key = :key');
+$stmt->bindValue(':user_id', $userId, SQLITE3_TEXT);
+$stmt->bindValue(':key', 'media_root', SQLITE3_TEXT);
+$result = $stmt->execute();
+$mediaRoot = ($row = $result->fetchArray(SQLITE3_ASSOC)) ? $row['setting_value'] : '';
+if (!$mediaRoot) {
+    echo json_encode(['error' => 'media_root not set or empty']);
     exit;
 }
+
+$mediaRoot = rtrim($mediaRoot, "/\\");
+if ($mediaRoot === '') {
+    $msg = 'media_root.txt boş veya sadece açıklama satırı var';
+    error_log('[media_browser.php] ' . $msg);
+    echo json_encode(['error' => $msg]);
+    exit;
+}
+
 error_log('[media_browser.php] mediaRoot yolu: ' . $mediaRoot);
 $baseDir = false;
 if ($mediaRoot !== '') {

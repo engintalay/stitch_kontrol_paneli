@@ -212,19 +212,24 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
                   <form id="moduleForm" class="space-y-4">
                     <input type="hidden" name="id" id="moduleId" />
                     <div>
-                      <label class="block mb-1 text-sm font-medium">Modül Adı</label>
-                      <input type="text" name="name" id="moduleName" class="form-input w-full" required />
+                      <label class="block mb-1 text-sm font-medium">Başlık</label>
+                      <input type="text" name="title" id="moduleTitle" class="form-input w-full" required />
+                    </div>
+                    <div>
+                      <label class="block mb-1 text-sm font-medium">İkon</label>
+                      <input type="text" name="icon" id="moduleIcon" class="form-input w-full" placeholder="material symbol adı" />
                     </div>
                     <div>
                       <label class="block mb-1 text-sm font-medium">Açıklama</label>
-                      <input type="text" name="desc" id="moduleDesc" class="form-input w-full" />
+                      <input type="text" name="description" id="moduleDescription" class="form-input w-full" />
                     </div>
                     <div>
-                      <label class="block mb-1 text-sm font-medium">Durum</label>
-                      <select name="status" id="moduleStatus" class="form-select w-full">
-                        <option value="aktif">Aktif</option>
-                        <option value="pasif">Pasif</option>
-                      </select>
+                      <label class="block mb-1 text-sm font-medium">Link</label>
+                      <input type="text" name="link" id="moduleLink" class="form-input w-full" placeholder="kontrol_paneli/code.php" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <input type="checkbox" name="admin_only" id="moduleAdminOnly" value="1" />
+                      <label for="moduleAdminOnly" class="text-sm">Sadece yönetici erişimi</label>
                     </div>
                     <div class="flex justify-end gap-2">
                       <button type="button" id="cancelModuleModal" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">İptal</button>
@@ -296,9 +301,11 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
     const cancelModuleModal = document.getElementById('cancelModuleModal');
     const moduleModalTitle = document.getElementById('moduleModalTitle');
     const moduleId = document.getElementById('moduleId');
-    const moduleName = document.getElementById('moduleName');
-    const moduleDesc = document.getElementById('moduleDesc');
-    const moduleStatus = document.getElementById('moduleStatus');
+    const moduleTitle = document.getElementById('moduleTitle');
+    const moduleIcon = document.getElementById('moduleIcon');
+    const moduleDescription = document.getElementById('moduleDescription');
+    const moduleLink = document.getElementById('moduleLink');
+    const moduleAdminOnly = document.getElementById('moduleAdminOnly');
 
     function fetchModules() {
       moduleTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-400">Yükleniyor...</td></tr>';
@@ -326,11 +333,11 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
           moduleTableBody.innerHTML = data.modules.map(m => `
             <tr class="border-b border-gray-100 dark:border-gray-800">
               <td class="py-2 px-3">${m.id}</td>
-              <td class="py-2 px-3">${m.name || ''}</td>
-              <td class="py-2 px-3">${m.desc || ''}</td>
-              <td class="py-2 px-3">${m.status || ''}</td>
+              <td class="py-2 px-3">${m.title || ''}</td>
+              <td class="py-2 px-3">${m.description || ''}</td>
+              <td class="py-2 px-3">${m.admin_only ? 'Yönetici' : 'Herkes'}</td>
               <td class="py-2 px-3">
-                <button class="text-blue-600 hover:underline mr-2" onclick="editModule(${m.id}, '${(m.name||'').replace(/'/g, "&#39;")}', '${(m.desc||'').replace(/'/g, "&#39;")}', '${m.status||''}')">Düzenle</button>
+                <button class="text-blue-600 hover:underline mr-2" onclick="editModule(${m.id}, '${(m.title||'').replace(/'/g, "&#39;")}', '${(m.icon||'').replace(/'/g, "&#39;")}', '${(m.description||'').replace(/'/g, "&#39;")}', '${(m.link||'').replace(/'/g, "&#39;")}', ${m.admin_only ? 1 : 0})">Düzenle</button>
                 <button class="text-red-600 hover:underline" onclick="deleteModule(${m.id})">Sil</button>
               </td>
             </tr>
@@ -342,20 +349,22 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
         });
     }
 
-    function openModuleModal(edit = false, id = '', name = '', desc = '', status = 'aktif') {
+    function openModuleModal(edit = false, id = '', title = '', icon = '', description = '', link = '#', admin_only = 0) {
       moduleModalTitle.textContent = edit ? 'Modülü Düzenle' : 'Yeni Modül';
       moduleId.value = id;
-      moduleName.value = name;
-      moduleDesc.value = desc;
-      moduleStatus.value = status;
+      moduleTitle.value = title;
+      moduleIcon.value = icon;
+      moduleDescription.value = description;
+      moduleLink.value = link;
+      moduleAdminOnly.checked = !!admin_only;
       moduleModal.classList.remove('hidden');
     }
 
     btnAddModule.onclick = () => openModuleModal(false);
     closeModuleModal.onclick = cancelModuleModal.onclick = () => moduleModal.classList.add('hidden');
 
-    window.editModule = function(id, name, desc, status) {
-      openModuleModal(true, id, name, desc, status);
+    window.editModule = function(id, title, icon, description, link, admin_only) {
+      openModuleModal(true, id, title, icon, description, link, admin_only);
     }
 
     window.deleteModule = function(id) {
@@ -379,9 +388,11 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
       const payload = new URLSearchParams();
       payload.append('action', isEdit ? 'update' : 'add');
       if (isEdit) payload.append('id', form.get('id'));
-      payload.append('name', form.get('name'));
-      payload.append('desc', form.get('desc'));
-      payload.append('status', form.get('status'));
+      payload.append('title', form.get('title'));
+      payload.append('icon', form.get('icon'));
+      payload.append('description', form.get('description'));
+      payload.append('link', form.get('link'));
+      if (form.get('admin_only')) payload.append('admin_only', '1');
       fetch('module_api.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},

@@ -27,7 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $db = new SQLite3('users.db');
     $password_hash = hash('sha256', $password);
+    //$password_hash = password_hash($password, PASSWORD_DEFAULT);
     // Kullanıcı adı veya e-posta ile giriş
+    //echo "SELECT id, email, role FROM users WHERE (email = '$username' OR email = '$username' ) AND password_hash = '$password_hash';";
+    //exit(1);
+
     $stmt = $db->prepare('SELECT id, email, role FROM users WHERE (email = :username OR email = :username2) AND password_hash = :password_hash');
     $stmt->bindValue(':username', $username, SQLITE3_TEXT);
     $stmt->bindValue(':username2', $username, SQLITE3_TEXT);

@@ -37,6 +37,14 @@ $passwordColumn = in_array('password_hash', $cols) ? 'password_hash' : 'password
 
 header('Content-Type: application/json; charset=utf-8');
 
+// Create table to store per-user module permissions (one row per allowed module)
+$db->exec("CREATE TABLE IF NOT EXISTS user_modules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    module_key TEXT NOT NULL,
+    UNIQUE(user_id, module_key)
+)");
+
 function error($msg) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => $msg]);
@@ -67,8 +75,8 @@ if ($action === 'add') {
     $role = $_POST['role'] ?? 'user';
     $permissions = $_POST['permissions'] ?? [];
     if (!$email || !$password) error('E-posta ve şifre zorunlu.');
-    $hash = password_hash($password, PASSWORD_DEFAULT);
-    // Use the detected password column name (some DBs use 'password_hash')
+    $hash = hash('sha256', $password);
+
     $insertCols = ['email', $passwordColumn, 'role', 'permissions'];
     $placeholders = [':email', ':password', ':role', ':permissions'];
     $sql = 'INSERT INTO users (' . implode(', ', $insertCols) . ') VALUES (' . implode(', ', $placeholders) . ')';
@@ -103,7 +111,11 @@ if ($action === 'update') {
     $stmt->bindValue(':role', $role, SQLITE3_TEXT);
     $stmt->bindValue(':permissions', json_encode($permissions), SQLITE3_TEXT);
     if ($password !== '') {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
+        if ($passwordColumn === 'password_hash') {
+            $hash = hash('sha256', $password);
+        } else {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+        }
         $stmt->bindValue(':password', $hash, SQLITE3_TEXT);
     }
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
@@ -122,6 +134,46 @@ if ($action === 'delete') {
     if (!$stmt) error('Veritabanı hatası (silme hazırlanamadı).');
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
     $stmt->execute();
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+// Return modules assigned to a user: ?action=modules&user_id=123
+if ($action === 'modules') {
+    $user_id = intval($_GET['user_id'] ?? $_POST['user_id'] ?? 0);
+    if (!$user_id) error('user_id zorunlu.');
+    $stmt = $db->prepare('SELECT module_key FROM user_modules WHERE user_id = :uid ORDER BY module_key ASC');
+    if (!$stmt) error('Veritabanı hatası (modül listesi hazırlanamadı).');
+    $stmt->bindValue(':uid', $user_id, SQLITE3_INTEGER);
+    $res = $stmt->execute();
+    $mods = [];
+    while ($r = $res->fetchArray(SQLITE3_ASSOC)) {
+        $mods[] = $r['module_key'];
+    }
+    echo json_encode(['ok' => true, 'modules' => $mods]);
+    exit;
+}
+
+// Set modules for a user (replace existing): POST action=set_modules user_id=.. modules[]=mod1&modules[]=mod2
+if ($action === 'set_modules') {
+    $user_id = intval($_POST['user_id'] ?? 0);
+    if (!$user_id) error('user_id zorunlu.');
+    $modules = $_POST['modules'] ?? [];
+    if (!is_array($modules)) $modules = [$modules];
+    // Begin transaction-like behavior
+    $db->exec('BEGIN');
+    $del = $db->prepare('DELETE FROM user_modules WHERE user_id = :uid');
+    if (!$del) { $db->exec('ROLLBACK'); error('Veritabanı hatası (silme hazırlanamadı).'); }
+    $del->bindValue(':uid', $user_id, SQLITE3_INTEGER);
+    $del->execute();
+    $ins = $db->prepare('INSERT OR IGNORE INTO user_modules (user_id, module_key) VALUES (:uid, :mkey)');
+    if (!$ins) { $db->exec('ROLLBACK'); error('Veritabanı hatası (ekleme hazırlanamadı).'); }
+    foreach ($modules as $m) {
+        $ins->bindValue(':uid', $user_id, SQLITE3_INTEGER);
+        $ins->bindValue(':mkey', trim((string)$m), SQLITE3_TEXT);
+        $ins->execute();
+    }
+    $db->exec('COMMIT');
     echo json_encode(['ok' => true]);
     exit;
 }

@@ -4,6 +4,8 @@ let currentIndex = 0;
 let thumbTotal = 0;
 let thumbLoaded = 0;
 let thumbFailed = 0;
+// Preserve original document title so we can prepend progress
+let originalTitle = (typeof document !== 'undefined' && document.title) ? document.title : '';
 
 function getPathFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -175,6 +177,21 @@ function updateThumbStatus() {
         }
     }
     if (failedEl) failedEl.innerText = thumbFailed;
+
+    // Update browser tab title with progress (show 'yükleme tamam' at 100%)
+    try {
+        if (!originalTitle) originalTitle = document.title || '';
+        if (thumbTotal > 0) {
+            let pct = Math.round((thumbLoaded / thumbTotal) * 100);
+            if (pct === 100) {
+                document.title = originalTitle + ' — ' + thumbLoaded + '/' + thumbTotal + ' (yükleme tamam)';
+            } else {
+                document.title = originalTitle + ' — ' + thumbLoaded + '/' + thumbTotal;
+            }
+        } else {
+            document.title = originalTitle;
+        }
+    } catch (e) {}
 }
 
 function goUp() {

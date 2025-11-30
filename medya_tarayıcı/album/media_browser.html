@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Browser</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin:0; padding:0; }
+        #browser { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+        .item { width: 120px; max-width: 40vw; text-align: center; cursor: pointer; }
+        .thumb { position: relative; width: 125px; height: 125px; max-width: 37vw; max-height: 37vw; object-fit: cover; border: 1px solid #ccc; }
+        .play-overlay {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            pointer-events: none;
+        }
+        .modal { display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000; }
+        .modal-content { position: relative; background: #fff; padding: 20px; border-radius: 8px; max-width: 95vw; max-height: 95vh; }
+        .modal img, .modal video { max-width: 80vw; max-height: 60vh; display:block; margin:auto; }
+        .close { position: absolute; top: 10px; right: 10px; background: #222; color: #fff; border: none; padding: 16px; cursor: pointer; border-radius: 4px; font-size: 2rem; z-index:2; }
+        .modal-nav {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 20vw;
+            min-width: 60px;
+            max-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.01);
+            cursor: pointer;
+            z-index: 1;
+        }
+        .modal-nav.left { left: 0; }
+        .modal-nav.right { right: 0; }
+        .modal-nav svg { width: 48px; height: 48px; fill: #fff; opacity: 0.7; }
+        @media (max-width: 600px) {
+            .item { width: 48vw; max-width: 48vw; }
+            .thumb { width: 50vw; height: 50vw; max-width: 50vw; max-height: 50vw; }
+            .modal-content { padding: 8px; }
+            .close, .prev, .next { padding: 10px; font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <h2>Media Browser</h2>
+    <button id="clearCacheBtn" style="margin-bottom:12px;">Cache Temizle</button>
+    <div id="path"></div>
+    <div id="browser"></div>
+    <div class="modal" id="modal">
+        <div class="modal-content" id="modal-content">
+            <button class="close" onclick="closeModal()">&#10006;</button>
+            <div class="modal-nav left" id="modalNavLeft">
+                <svg viewBox="0 0 48 48"><polyline points="32,8 16,24 32,40" stroke="#fff" stroke-width="4" fill="none"/></svg>
+            </div>
+            <div class="modal-nav right" id="modalNavRight">
+                <svg viewBox="0 0 48 48"><polyline points="16,8 32,24 16,40" stroke="#fff" stroke-width="4" fill="none"/></svg>
+            </div>
+            <div id="modal-media"></div>
+        </div>
+    </div>
+    <script src="media_browser.js"></script>
+    <script>
+document.getElementById('clearCacheBtn').onclick = function() {
+    fetch('thumb.php?clear_cache=1')
+        .then(r => r.text())
+        .then(msg => alert(msg));
+};
+// Modalda sol/sağ kenara tıklama ile resim geçişi
+document.getElementById('modalNavLeft').onclick = function(e) {
+    e.stopPropagation();
+    showPrev();
+};
+document.getElementById('modalNavRight').onclick = function(e) {
+    e.stopPropagation();
+    showNext();
+};
+// Modal dışında bir yere tıklanınca kapat
+document.getElementById('modal').addEventListener('mousedown', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+    </script>
+</body>
+</html>

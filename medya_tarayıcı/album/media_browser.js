@@ -167,7 +167,12 @@ function updateThumbStatus() {
         if (thumbTotal > 0) pct = Math.round((thumbLoaded / thumbTotal) * 100);
         if (pct < 0) pct = 0;
         if (pct > 100) pct = 100;
-        loadedEl.innerText = thumbLoaded + ' (' + pct + '%)';
+        // Show just the loaded count; show percent text only when it's 100% as "yükleme tamam"
+        if (thumbTotal > 0 && pct === 100) {
+            loadedEl.innerText = thumbLoaded + ' (yükleme tamam)';
+        } else {
+            loadedEl.innerText = thumbLoaded;
+        }
     }
     if (failedEl) failedEl.innerText = thumbFailed;
 }

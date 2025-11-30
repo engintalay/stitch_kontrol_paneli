@@ -176,8 +176,13 @@ try {
         <span class="material-symbols-outlined text-primary text-3xl">dashboard</span>
         <span class="font-bold text-xl text-primary"><?= htmlspecialchars($title) ?></span>
       </div>
-      <a href="../home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
-      <a href="../logout.php" class="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
+      <div class="flex items-center gap-4">
+        <div id="thumb-status" class="text-sm text-gray-600 dark:text-gray-300">
+          Görüntü Durumu: <span id="thumb-total">0</span> gösteriliyor — <span id="thumb-loaded">0</span> yüklendi — <span id="thumb-failed">0</span> yüklenemedi
+        </div>
+        <a href="../home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+        <a href="../logout.php" class="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
+      </div>
     </header>
     <main class="flex-1 p-8">
       <div class="max-w-4xl mx-auto">
@@ -189,9 +194,6 @@ try {
         <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-6">
           <button id="clearCacheBtn" class="mb-4 px-4 py-2 bg-primary text-white rounded hover:bg-blue-700 transition">Cache Temizle</button>
           <div id="path" class="mb-4"></div>
-          <div id="thumb-status" class="mb-4 text-sm text-gray-600 dark:text-gray-300">
-            Görüntü Durumu: <span id="thumb-total">0</span> gösteriliyor — <span id="thumb-loaded">0</span> yüklendi — <span id="thumb-failed">0</span> yüklenemedi
-          </div>
           <div id="browser"></div>
         </div>
       </div>

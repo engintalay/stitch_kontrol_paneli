@@ -55,13 +55,77 @@ require_once __DIR__ . '/../auth_check.php';
         width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,0.6);
         color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; pointer-events: none;
     }
-    .modal { display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000; }
-    .modal-content { position: relative; background: #fff; padding: 20px; border-radius: 8px; max-width: 95vw; max-height: 95vh; }
-    .modal img, .modal video { max-width: 80vw; max-height: 60vh; display:block; margin:auto; }
-    .close { position: absolute; top: 10px; right: 10px; background: #222; color: #fff; border: none; padding: 16px; cursor: pointer; border-radius: 4px; font-size: 2rem; z-index:2; }
-    .modal-nav { position: absolute; top: 0; bottom: 0; width: 20vw; min-width: 60px; max-width: 120px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.01); cursor: pointer; z-index: 1; }
-    .modal-nav.left { left: 0; } .modal-nav.right { right: 0; }
-    .modal-nav svg { width: 48px; height: 48px; fill: #fff; opacity: 0.7; }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      position: relative;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal img, .modal video {
+      max-width: 80vw; /* Constrain image width to 80% of the viewport */
+      max-height: 80vh; /* Constrain image height to 80% of the viewport */
+      object-fit: contain; /* Ensure the image scales proportionally */
+      display: block;
+      margin: auto;
+      border: 1px solid #ccc; /* Optional: Add a border for better visibility */
+      border-radius: 8px; /* Optional: Add rounded corners */
+    }
+    .modal-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 1100; /* Ensure buttons are above other elements */
+    }
+    .modal-nav.left {
+      left: 20px;
+    }
+    .modal-nav.right {
+      right: 20px;
+    }
+    .modal-nav svg {
+      width: 30px;
+      height: 30px;
+    }
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+      z-index: 1100;
+    }
     @media (max-width: 600px) {
       .item { width: 48vw; max-width: 48vw; }
       .thumb { width: 50vw; height: 50vw; max-width: 50vw; max-height: 50vw; }
@@ -118,10 +182,11 @@ require_once __DIR__ . '/../auth_check.php';
   </html>
 
     <!-- Modal yapısı: media_browser.js ile tam uyumlu -->
-    <div id="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
-      <div id="modal-media" style="max-width:90vw; max-height:90vh;"></div>
-      <button onclick="closeModal()" style="position:absolute;top:16px;right:16px;font-size:2em;z-index:2;">&times;</button>
-      <button onclick="showPrev()" style="position:absolute;left:16px;top:50%;font-size:2em;z-index:2;">&#8592;</button>
-      <button onclick="showNext()" style="position:absolute;right:56px;top:50%;font-size:2em;z-index:2;">&#8594;</button>
+    <div id="modal" class="modal" style="display:none;">
+      <div id="modal-media" class="modal-content" style="max-width:90vw; max-height:90vh;"></div>
+      <button class="close" onclick="closeModal()" style="font-size:2em;z-index:2;">&times;</button>
+      <button class="modal-nav left" onclick="showPrev()" style="font-size:2em;z-index:2;">&#8592;</button>
+      <button class="modal-nav right" onclick="showNext()" style="font-size:2em;z-index:2;">&#8594;</button>
     </div>
+    </html>
 </html>

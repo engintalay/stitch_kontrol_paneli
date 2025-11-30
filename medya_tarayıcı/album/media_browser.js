@@ -158,7 +158,13 @@ function updateThumbStatus() {
     const loadedEl = document.getElementById('thumb-loaded');
     const failedEl = document.getElementById('thumb-failed');
     if (totalEl) totalEl.innerText = thumbTotal;
-    if (loadedEl) loadedEl.innerText = thumbLoaded;
+    if (loadedEl) {
+        let pct = 0;
+        if (thumbTotal > 0) pct = Math.round((thumbLoaded / thumbTotal) * 100);
+        if (pct < 0) pct = 0;
+        if (pct > 100) pct = 100;
+        loadedEl.innerText = thumbLoaded + ' (' + pct + '%)';
+    }
     if (failedEl) failedEl.innerText = thumbFailed;
 }
 

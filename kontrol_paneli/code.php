@@ -65,6 +65,52 @@ $stmtTheme->bindValue(':key', 'system_theme', SQLITE3_TEXT);
 $resTheme = $stmtTheme->execute();
 $currentSystemTheme = ($r = $resTheme->fetchArray(SQLITE3_ASSOC)) ? $r['setting_value'] : 'auto';
 
+// Handle build index request (bulk index)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['build_index'])) {
+  $msg = '';
+  if (empty($currentMediaRoot)) {
+    $message = 'Medya root dizini ayarlı değil. Lütfen önce Medya Root dizinini ayarlayın.';
+  } else {
+    // Resolve base dir similar to thumb.php
+    $mediaRoot = rtrim($currentMediaRoot, "/\\");
+    if ($mediaRoot[0] !== '/') {
+      $projectRoot = realpath(__DIR__ . '/../..');
+      $baseDir = realpath($projectRoot . '/' . $mediaRoot);
+    } else {
+      $baseDir = realpath($mediaRoot);
+    }
+    if (!$baseDir || !is_dir($baseDir) || !is_readable($baseDir)) {
+      $message = 'Medya kök dizini çözümlenemedi veya okunamıyor: ' . htmlspecialchars($currentMediaRoot);
+    } else {
+      // Scan files
+      $imageExts = ['jpg','jpeg','png','gif','bmp','webp'];
+      $videoExts = ['mp4','mkv','webm','avi','mov','mpeg','mpg','ts'];
+      $allowed = array_merge($imageExts, $videoExts);
+      $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($baseDir, FilesystemIterator::SKIP_DOTS));
+      $results = [];
+      foreach ($rii as $file) {
+        if ($file->isFile()) {
+          $ext = strtolower(pathinfo($file->getFilename(), PATHINFO_EXTENSION));
+          if (in_array($ext, $allowed)) {
+            $real = $file->getRealPath();
+            // Normalize path to start with /media/ if baseDir contains '/media'
+            $results[$real] = [];
+          }
+        }
+      }
+      // Write scan_results.json in album folder
+      $scanFile = __DIR__ . '/../medya_tarayıcı/album/scan_results.json';
+      $tmp = $scanFile . '.tmp';
+      if (file_put_contents($tmp, json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
+        rename($tmp, $scanFile);
+        $message = 'Indexleme tamamlandı. Toplam dosya: ' . count($results);
+      } else {
+        $message = 'Indexleme sırasında yazma hatası oluştu.';
+      }
+    }
+  }
+}
+
 $title = 'Kontrol Paneli';
 $icon = 'settings';
 $description = 'Sistem ayarlarını yönetin';
@@ -139,6 +185,60 @@ $description = 'Sistem ayarlarını yönetin';
             <input type="text" id="media_root" name="media_root" value="<?= htmlspecialchars($currentMediaRoot) ?>" class="form-input w-full" placeholder="/path/to/media" required />
             <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Kaydet</button>
           </form>
+          <hr class="my-6" />
+          <!-- Index status and control -->
+          <div class="mt-4">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Medya Index Durumu</h3>
+            <?php
+              // Calculate indexed/total counts
+              $indexed = 0;
+              $totalFiles = 0;
+              $scanFile = __DIR__ . '/../medya_tarayıcı/album/scan_results.json';
+              if (file_exists($scanFile)) {
+                $data = json_decode(file_get_contents($scanFile), true);
+                if (is_array($data)) $indexed = count($data);
+              }
+              if (!empty($currentMediaRoot)) {
+                // resolve baseDir similar to above
+                $mediaRoot = rtrim($currentMediaRoot, "/\\");
+                if ($mediaRoot[0] !== '/') {
+                    $projectRoot = realpath(__DIR__ . '/../..');
+                    $baseDir = realpath($projectRoot . '/' . $mediaRoot);
+                } else {
+                    $baseDir = realpath($mediaRoot);
+                }
+                if ($baseDir && is_dir($baseDir) && is_readable($baseDir)) {
+                  $exts = ['jpg','jpeg','png','gif','bmp','webp','mp4','mkv','webm','avi','mov','mpeg','mpg','ts'];
+                  $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($baseDir, FilesystemIterator::SKIP_DOTS));
+                  foreach ($it as $f) {
+                      if ($f->isFile()) {
+                          $ext = strtolower(pathinfo($f->getFilename(), PATHINFO_EXTENSION));
+                          if (in_array($ext, $exts)) $totalFiles++;
+                      }
+                  }
+                }
+              }
+              $remaining = max(0, $totalFiles - $indexed);
+            ?>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+              <div class="p-3 bg-gray-50 dark:bg-[#1f2937] rounded">
+                <div class="text-sm text-gray-500 dark:text-gray-400">Toplam Medya Dosyası</div>
+                <div class="text-2xl font-bold text-gray-800 dark:text-gray-100"><?= $totalFiles ?></div>
+              </div>
+              <div class="p-3 bg-gray-50 dark:bg-[#1f2937] rounded">
+                <div class="text-sm text-gray-500 dark:text-gray-400">Indexlenen</div>
+                <div class="text-2xl font-bold text-gray-800 dark:text-gray-100"><?= $indexed ?></div>
+              </div>
+              <div class="p-3 bg-gray-50 dark:bg-[#1f2937] rounded">
+                <div class="text-sm text-gray-500 dark:text-gray-400">Kalan</div>
+                <div class="text-2xl font-bold text-red-600 dark:text-red-400"><?= $remaining ?></div>
+              </div>
+            </div>
+            <form method="POST">
+              <input type="hidden" name="build_index" value="1" />
+              <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Toplu Indexleme Başlat</button>
+            </form>
+          </div>
           <hr class="my-6" />
           <form method="POST" class="space-y-4">
             <label for="system_theme" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sistem Teması</label>

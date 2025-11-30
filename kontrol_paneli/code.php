@@ -8,9 +8,14 @@ if (!isset($_SESSION['user_role'])) {
 
 // User-specific media_root configuration
 $mediaRootFile = __DIR__ . '/../medya_tarayıcı/album/media_root.txt';
+$message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['media_root'])) {
     $mediaRoot = trim($_POST['media_root']);
-    file_put_contents($mediaRootFile, $mediaRoot);
+    if (file_put_contents($mediaRootFile, $mediaRoot) === false) {
+        $message = 'Medya root dizini kaydedilemedi!';
+    } else {
+        $message = 'Medya root dizini başarıyla kaydedildi!';
+    }
 }
 $currentMediaRoot = file_exists($mediaRootFile) ? file_get_contents($mediaRootFile) : '';
 
@@ -80,6 +85,9 @@ $description = 'Sistem ayarlarını yönetin';
         <p class="text-gray-500 dark:text-gray-400 mb-6"><?= htmlspecialchars($description) ?></p>
         <!-- Dinamik içerik buraya gelecek -->
         <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-6">
+          <?php if ($message): ?>
+            <p class="text-sm font-medium text-red-500 dark:text-red-400 mb-4"> <?= htmlspecialchars($message) ?> </p>
+          <?php endif; ?>
           <form method="POST" class="space-y-4">
             <label for="media_root" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Medya Root Dizini</label>
             <input type="text" id="media_root" name="media_root" value="<?= htmlspecialchars($currentMediaRoot) ?>" class="form-input w-full" placeholder="/path/to/media" required />

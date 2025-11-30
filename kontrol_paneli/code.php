@@ -1,5 +1,11 @@
 <?php
 // kontrol_paneli/code.php
+session_start();
+if (!isset($_SESSION['user_role'])) {
+    header('Location: /login.php');
+    exit;
+}
+
 $title = 'Kontrol Paneli';
 $icon = 'settings';
 $description = 'Sistem ayarlarını yönetin';
@@ -70,6 +76,9 @@ $description = 'Sistem ayarlarını yönetin';
         </div>
       </div>
     </main>
+    <div class="flex justify-end p-4">
+      <a href="/logout.php" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
+    </div>
   </div>
 </body>
 </html>

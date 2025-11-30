@@ -1,5 +1,11 @@
 <?php
 // sistem_monitörü/code.php
+session_start();
+if (!isset($_SESSION['user_role'])) {
+    header('Location: /login.php');
+    exit;
+}
+
 $title = 'Sistem Monitörü';
 $icon = 'monitor_heart';
 $description = 'Sistem durumunu izleyin';
@@ -70,6 +76,9 @@ $description = 'Sistem durumunu izleyin';
         </div>
       </div>
     </main>
+    <div class="flex justify-end p-4">
+      <a href="/logout.php" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
+    </div>
   </div>
 </body>
 </html>

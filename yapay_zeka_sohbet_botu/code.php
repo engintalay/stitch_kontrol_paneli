@@ -1,5 +1,11 @@
 <?php
 // yapay_zeka_sohbet_botu/code.php
+session_start();
+if (!isset($_SESSION['user_role'])) {
+    header('Location: /login.php');
+    exit;
+}
+
 $title = 'Yapay Zeka Sohbet Botu';
 $icon = 'smart_toy';
 $description = 'Yapay zeka ile sohbet edin';
@@ -70,6 +76,9 @@ $description = 'Yapay zeka ile sohbet edin';
         </div>
       </div>
     </main>
+    <div class="flex justify-end p-4">
+      <a href="/logout.php" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
+    </div>
   </div>
 </body>
 </html>

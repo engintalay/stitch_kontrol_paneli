@@ -29,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['media_root'])) {
     if ($stmt->execute()) {
         $message = 'Medya root dizini başarıyla kaydedildi!';
     } else {
-        $message = 'Medya root dizini kaydedilemedi!';
+        $errorInfo = $db->lastErrorMsg();
+        $message = 'Medya root dizini kaydedilemedi! Hata: ' . htmlspecialchars($errorInfo);
     }
 }
 $stmt = $db->prepare('SELECT setting_value FROM user_settings WHERE user_id = :user_id AND setting_key = :key');

@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_role'])) {
+    header('Location: /login.php');
+    exit;
+}
 function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
 // SQLite ile modül veritabanı
 $db = new SQLite3('modules.db');

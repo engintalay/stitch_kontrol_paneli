@@ -1,8 +1,28 @@
-
 <?php
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+
+
+$gd = function_exists('gd_info');
+$imagejpeg = function_exists('imagejpeg');
+$imagewebp = function_exists('imagewebp');
+$imagecreatefromjpeg = function_exists('imagecreatefromjpeg');
+$imagecreatefrompng = function_exists('imagecreatefrompng');
+$imagecreatefromwebp = function_exists('imagecreatefromwebp');
+$imagecreatetruecolor = function_exists('imagecreatetruecolor');
+$exif = function_exists('exif_read_data');
+$ffmpeg = (bool) shell_exec('command -v ffmpeg');
+
+
+$missing = [];
+if (!$gd) $missing['php-gd'] = 'sudo pacman -S php-gd';
+if (!$imagejpeg || !$imagewebp || !$imagecreatefromjpeg || !$imagecreatefrompng || !$imagecreatefromwebp || !$imagecreatetruecolor) $missing['php-gd (fonksiyonlar)'] = 'sudo pacman -S php-gd';
+if (!$exif) $missing['php-exif'] = 'sudo pacman -S php-exif';
+if (!$ffmpeg) $missing['ffmpeg'] = 'sudo pacman -S ffmpeg';
+
 
 function h($str) {
         return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
@@ -70,6 +90,17 @@ $writable = is_writable(__DIR__);
         </header>
         <main class="flex-1 p-8 flex items-center justify-center">
             <div class="w-full max-w-md p-8 bg-white dark:bg-[#181c23] rounded-xl shadow-lg">
+                <?php if (!empty($missing)): ?>
+                <div class="mb-6 p-4 bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-700 rounded-lg">
+                    <div class="font-bold text-red-700 dark:text-red-300 mb-2">Eksik Paket/Fonksiyonlar</div>
+                    <ul class="mb-2 text-sm text-red-800 dark:text-red-200">
+                        <?php foreach ($missing as $desc => $cmd): ?>
+                        <li><strong><?=h($desc)?></strong> &rarr; <code class="bg-gray-200 dark:bg-gray-800 px-1 py-0.5 rounded text-xs"><?=h($cmd)?></code></li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">EndeavourOS (Arch tabanlı) için önerilen kurulum komutlarıdır.</div>
+                </div>
+                <?php endif; ?>
                 <div class="flex flex-col items-center mb-6">
                     <span class="material-symbols-outlined text-primary text-5xl mb-2">settings</span>
                     <h1 class="text-2xl font-bold text-primary mb-1">Sunucu Özellikleri Kontrolü</h1>
@@ -81,6 +112,15 @@ $writable = is_writable(__DIR__);
                     <li>PDO SQLite: <span class="<?= $pdo_sqlite ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $pdo_sqlite ? 'Yüklü' : 'YOK' ?></span></li>
                     <li>Session desteği: <span class="<?= $session ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $session ? 'Var' : 'YOK' ?></span></li>
                     <li>Proje dizini yazılabilir mi?: <strong><?= $writable ? '<span class="text-green-600">Evet</span>' : '<span class="text-red-600">Hayır</span>' ?></strong></li>
+                    <li>GD kütüphanesi: <span class="<?= $gd ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $gd ? 'Yüklü' : 'YOK' ?></span></li>
+                    <li>imagejpeg: <span class="<?= $imagejpeg ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $imagejpeg ? 'Var' : 'YOK' ?></span></li>
+                    <li>imagewebp: <span class="<?= $imagewebp ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $imagewebp ? 'Var' : 'YOK' ?></span></li>
+                    <li>imagecreatefromjpeg: <span class="<?= $imagecreatefromjpeg ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $imagecreatefromjpeg ? 'Var' : 'YOK' ?></span></li>
+                    <li>imagecreatefrompng: <span class="<?= $imagecreatefrompng ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $imagecreatefrompng ? 'Var' : 'YOK' ?></span></li>
+                    <li>imagecreatefromwebp: <span class="<?= $imagecreatefromwebp ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $imagecreatefromwebp ? 'Var' : 'YOK' ?></span></li>
+                    <li>imagecreatetruecolor: <span class="<?= $imagecreatetruecolor ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $imagecreatetruecolor ? 'Var' : 'YOK' ?></span></li>
+                    <li>exif_read_data: <span class="<?= $exif ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $exif ? 'Var' : 'YOK' ?></span></li>
+                    <li>ffmpeg (binary): <span class="<?= $ffmpeg ? 'text-green-600' : 'text-red-600' ?> font-semibold"><?= $ffmpeg ? 'Var' : 'YOK' ?></span></li>
                 </ul>
             </div>
         </main>

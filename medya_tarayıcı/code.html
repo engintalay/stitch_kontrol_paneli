@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Medya Tarayıcı</title>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#3713ec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#131022",
+            },
+            fontFamily: {
+              "display": ["Spline Sans", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: 'FILL' 1
+      }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-white">
+<div class="flex h-screen w-full">
+<!-- SideNavBar -->
+<aside class="flex h-full w-64 flex-col justify-between border-r border-gray-200/10 bg-background-light dark:bg-background-dark p-4">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3 px-2">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBoAheeNrhD9zNImKLD6FiZqeTjTikUDaBSLQZG0eZKGhV0zhSHW9VYd4oCM2hmjUkB-siZ8CGwg_lIJqU4t0Olg-CEyo6Ec5XuOelJ-ePI5osZnotC2SlLN3uCx0kwcBxERU9z80aP1h6ezWt1OMk5iUPsxo9pyqvHCimgG0A0ZlV9YX4XVDTbg60d3EBnBcQhp9uz6zOQXHVjrjnNdj-iYDkmIdhkEWZBaFqbjDCsVlQZgpKcslbniVJDq7nyS2jUM5UZ6zur8EQ");'></div>
+<div class="flex flex-col">
+<h1 class="text-gray-900 dark:text-white text-base font-medium leading-normal">Medya Tarayıcı</h1>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">15 GB / 50 GB kullanıldı</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">folder_open</span>
+<p class="text-sm font-medium leading-normal">Tüm Medyalar</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">image</span>
+<p class="text-sm font-medium leading-normal">Resimler</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">videocam</span>
+<p class="text-sm font-medium leading-normal">Videolar</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">music_note</span>
+<p class="text-sm font-medium leading-normal">Müzik</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">star</span>
+<p class="text-sm font-medium leading-normal">Favoriler</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">folder</span>
+<p class="text-sm font-medium leading-normal">Belgelerim</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary" href="#">
+<span class="material-symbols-outlined fill text-xl">folder</span>
+<p class="text-sm font-medium leading-normal">Tatil Fotoğrafları</p>
+</a>
+</nav>
+</div>
+<div class="flex flex-col gap-4">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] w-full hover:bg-primary/90">
+<span class="truncate">Yükselt</span>
+</button>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<p class="text-sm font-medium leading-normal">Ayarlar</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">delete</span>
+<p class="text-sm font-medium leading-normal">Çöp Kutusu</p>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-screen overflow-y-auto">
+<header class="sticky top-0 z-10 flex flex-col bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-gray-200/10">
+<div class="px-6 py-4">
+<label class="flex flex-col min-w-40 h-12 w-full max-w-lg">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-gray-500 dark:text-gray-400 flex bg-gray-200 dark:bg-white/5 items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border-none bg-gray-200 dark:bg-white/5 h-full placeholder:text-gray-500 dark:placeholder:text-gray-400 px-4 pl-2 text-base font-normal leading-normal" placeholder="Dosyalarda ara..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex items-center justify-between gap-4 px-6 pb-4">
+<!-- Breadcrumbs -->
+<nav class="flex flex-wrap items-center gap-2">
+<a class="text-gray-500 dark:text-gray-400 hover:text-primary text-sm font-medium leading-normal" href="#">Ana Sayfa</a>
+<span class="text-gray-500 dark:text-gray-400 text-sm font-medium leading-normal">/</span>
+<a class="text-gray-500 dark:text-gray-400 hover:text-primary text-sm font-medium leading-normal" href="#">Belgelerim</a>
+<span class="text-gray-500 dark:text-gray-400 text-sm font-medium leading-normal">/</span>
+<span class="text-gray-900 dark:text-white text-sm font-medium leading-normal">Tatil Fotoğrafları</span>
+</nav>
+</div>
+<!-- ToolBar -->
+<div class="flex justify-between gap-2 px-6 py-3 border-t border-gray-200/10">
+<div class="flex items-center gap-2">
+<button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-md">
+<span class="material-symbols-outlined text-xl">create_new_folder</span>
+</button>
+<button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-md">
+<span class="material-symbols-outlined text-xl">upload</span>
+</button>
+<div class="h-6 w-px bg-gray-200/50 dark:bg-white/10 mx-2"></div>
+<button class="p-2 text-primary bg-primary/10 dark:bg-primary/20 rounded-md">
+<span class="material-symbols-outlined text-xl">grid_view</span>
+</button>
+<button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 rounded-md">
+<span class="material-symbols-outlined text-xl">view_list</span>
+</button>
+</div>
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-primary text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-primary/90">
+<span class="material-symbols-outlined fill text-lg">share</span>
+<span class="truncate">Paylaş</span>
+</button>
+</div>
+</header>
+<!-- ImageGrid -->
+<div class="p-6">
+<div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-5">
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden shadow-lg relative" data-alt="Golden sunset over a calm beach with waves gently lapping the shore" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBT3-Rt3zlsZdu6xz6f1q8zS7HgDXp9of0W62BC0lmoAt9ihbihZ-sUPOwjDxOk7es66He4AQOM0fdcklZ5hbcKXL-fohpXnIShxqK5Y4g7Ynmv3iCX52m4acLANHqyB4lapTcudhDzGjVO5c4euriZh-_evBjUtcl1nd2VQTBbWE6Daoom6AaOPvtuTwzRjMYYlMshi0BfS9IEIyIXRElZXAuH09wb7FhYVzwQ3Hdw-265IUFGcdiF1cPHpYEaXF__xYRFAn2UBYI");'>
+<div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div>
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal truncate">plajda-gunbatimi.jpg</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">25.08.2023</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden shadow-lg relative" data-alt="A family gathered around a dinner table, smiling and laughing." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuATGd95gWU9OYN3rnnQTnwXOmCHtdZs1eJoaxlRYQR8YWgemqc9cA5SO8v1jTTEZdTlyiqwrUIoHoRcM81puecj68H0AkjunJUdqasWbQFnM5t_eR8AN3NceZdIIxqpzizzaZooR_aOa10qBGFzX2IVm0F93JsBOqhtVICbozgMpWu4ClAHIuOHNihdCMaIwaU7a-DirzJrxIJvRnQS2E9S_MaE31lcWeA9CRJgXhUd2r9zh9FUMEa1d03PsLz6sCiCUc7C3GCy2_k");'>
+<div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-5xl">play_circle</span>
+</div>
+</div>
+<div>
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal truncate">aile-yemegi.mp4</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">24.08.2023</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden shadow-lg relative" data-alt="A majestic mountain range with snowy peaks under a clear blue sky." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAESlQlTq6r2qJUXsS5L8izG5ydSel2qWU05qQYhDcthT83cDtKwQidztZZUg4ijuGfvVvcAD_jN00eK0OCDrAkVECH3I0ort6cWN-KatDL3xgIWEnBZBJhH2Gwbom9JpE2yuyFW1GSF7yf1rkWikHBk3zKeJk2-Efcp8n68gj1jvzcl3_dLze-bh0sw6dX3a9ZUu1GgFkwZ-GPTC5zvzLEzgQOzM1MqM5j8wOk7IX9Ka7PU18aV9c6HZ0IrBl1r5D_LkZ0_8DsAXU");'>
+<div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div>
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal truncate">dağ-manzarası.png</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">23.08.2023</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden shadow-lg relative" data-alt="A colorful birthday party scene with balloons, a cake, and confetti." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDrsQl5tYtlk94Sxg7fXK-EOmDkSpUUzPdl_-hYFikHdEnbf2NjSIVn2SXwTRRFJjNFLRT09JHsGrfPQZvgU0dJJbcAyQaKSg5XqI9KNx0j9l7JcBr_drKMNSXO1ewLfe1MfPcI1EQIE8ArrGgl5qdDAlDN4KF6Qv3r1j_6_3l2FFue3zr3XsXFylIXC8620kkhb1j1u-gQjiCc5s3zv-y2KAHp8fNIexhU0_asypUV2jx0KjWIA2l50Oor_uuXtyZPDiArXcP3zK4");'>
+<div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div>
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal truncate">doğum-günü-partisi.jpg</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">22.08.2023</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden shadow-lg relative" data-alt="A charming old cobblestone street in a European city at dusk." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBetasWEdfGY-gjDGSUrSKg5TILdz03xrUnl60qjUEAIy3QQzOZsfIJ0bq2gNqv6XkL6njkU2GZkKKnGAvUesTNbfMKjexa3Z4akCtZ65pkWsqpN21r_EgjG-QlyHmkG8lto5LARLd9A8Uy0nyREfATSgTKWDb9vh048m0Ro0AOfoKFOy6l6DxlhFdCO9a0E9UKWYqSpMrnmqpquwmTsmPYzVmzeKmcLy_i0Cp1Vr0MHjA6PWGl7f2XEiaIghbvsY9FGPxwVVUpWws");'>
+<div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div>
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal truncate">eski-sokaklar.jpg</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">21.08.2023</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden shadow-lg relative" data-alt="A live concert with a band on stage and a crowd of people watching." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCNTx75bVKMt5LixbJtWAIrry2TpwyIQhUGQ3JDYZoRigtSISp-4--lwZ-5W3H2QV17oPWXbZ2n3kXNef1HAHa7puTOFyvIHC62mw_S_pio1m9YRpzeSpKXMLhVkmSsnYvlGUazOKIs8__iSTA-NvsRDbOFpX7_x6rKoRq_0AV6EQpOFpSYg9lMo9Wfk_Dp_8hQU2AhawGnFPUgGxgCgcbiJ0OQlc3ZROidD_Cypq8QtYhJqOlXWqqxaD38VL6SPRpGjZyFfV9vii4");'>
+<div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-5xl">play_circle</span>
+</div>
+</div>
+<div>
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal truncate">konser-kaydı.mov</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">20.08.2023</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden shadow-lg relative" data-alt="A close-up shot of a tropical flower with vibrant colors." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAhQqvkKbmSWrUy8v3-eoZ5RFbY04zx1i1jNgr53KtA02J5mA2u_j6S-RWphQsFkrs1RB9ErsSCtpDcBHnddfL8Jg8MZUB_enxNdsGhmACOitbxcrf6DfHm66gmBvMZziLe3mY4jnZUClMn-_ZwOREZhdt2Jonj2-bprLAT0yJFdWsOS4XXNbUkKk5QuBHF3C2N6jNmP4DCzwzisK5RoAzXU0iupRar-9y8QZWjXC_S6u4jrjRUQGxIGfjHybDP62yLVY_d4GItUok");'>
+<div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div>
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal truncate">bahce-cicekleri.png</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">19.08.2023</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden shadow-lg relative" data-alt="An aerial view of a forest with tall green trees." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuALAwYNMQByVtVGPHtpcXLWjiD3m16R4iTobKi8FO6E39LsZX9xJpL2n32lfzLCnGm_bK_1fLfNAMZAaJeoKlAR2DmUbkb8u7BLBpIgd3aaXd3GdmVm0FcMSAtnqHw92Yw4Yrd3xkVRVY1I38bcphSv6znvb_2k4Dn82fJjvILJDlM42axIrTW1oZcxwq7U4XCacbvsAklkmHA-hhI679j8a1M6pZluybYo1z_cYLiHYa0Cquoe-qaDl5gQL9RLO130vj7xxqIxh28");'>
+<div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div>
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal truncate">orman-gezisi.jpg</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">18.08.2023</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

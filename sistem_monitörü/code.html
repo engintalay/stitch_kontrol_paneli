@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sistem Monitörü</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+      }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex min-h-screen w-full">
+<!-- SideNavBar -->
+<aside class="flex h-screen w-64 flex-col border-r border-slate-200 bg-background-light p-4 dark:border-slate-800 dark:bg-background-dark sticky top-0">
+<div class="flex items-center gap-3">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-2xl">data_usage</span>
+</div>
+<div class="flex flex-col">
+<h1 class="font-bold text-slate-900 dark:text-white">Proje Adı</h1>
+<p class="text-sm text-slate-600 dark:text-slate-400">Sistem İzleme</p>
+</div>
+</div>
+<nav class="mt-8 flex flex-1 flex-col gap-2">
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-sm font-medium">Ana Sayfa</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-2xl">apps</span>
+<span class="text-sm font-medium">Uygulamalar</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg bg-primary/20 px-3 py-2 font-medium text-primary" href="#">
+<span class="material-symbols-outlined text-2xl">monitoring</span>
+<span class="text-sm font-medium">Araçlar</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-sm font-medium">Ayarlar</span>
+</a>
+</nav>
+<div class="mt-auto">
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-2xl">logout</span>
+<span class="text-sm font-medium">Çıkış Yap</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto p-8">
+<div class="mx-auto max-w-7xl">
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap items-center gap-2">
+<a class="text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary" href="#">Ana Sayfa</a>
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">/</span>
+<a class="text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary" href="#">Araçlar</a>
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">/</span>
+<span class="text-sm font-medium text-slate-900 dark:text-white">Sistem Monitörü</span>
+</div>
+<!-- PageHeading -->
+<div class="mt-4 flex flex-wrap items-center justify-between gap-4">
+<h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Sistem Monitörü</h1>
+<div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
+<button class="rounded-md px-3 py-1 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">1 Saat</button>
+<button class="rounded-md bg-slate-100 px-3 py-1 text-sm font-medium text-slate-900 dark:bg-slate-800 dark:text-white">24 Saat</button>
+<button class="rounded-md px-3 py-1 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">7 Gün</button>
+</div>
+</div>
+<!-- Stats -->
+<div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+<div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+<p class="text-base font-medium text-slate-600 dark:text-slate-400">CPU Kullanımı</p>
+<p class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">34%</p>
+<p class="text-sm font-medium text-green-500">+2.5%</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+<p class="text-base font-medium text-slate-600 dark:text-slate-400">RAM Kullanımı</p>
+<p class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">8.2 GB</p>
+<p class="text-sm font-medium text-red-500">-0.8%</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+<p class="text-base font-medium text-slate-600 dark:text-slate-400">Ağ İndirme</p>
+<p class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">150.7 Mbps</p>
+<p class="text-sm font-medium text-green-500">+12.1%</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+<p class="text-base font-medium text-slate-600 dark:text-slate-400">Ağ Yükleme</p>
+<p class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">25.1 Mbps</p>
+<p class="text-sm font-medium text-green-500">+5.3%</p>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+<!-- CPU Usage Chart -->
+<div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">CPU Kullanımı Zaman Serisi</h2>
+<div class="mt-4 h-64">
+<img alt="A line graph showing CPU utilization over the last minute, with data points at 25%, 30%, 45%, 40%, 28%, and currently 34%." class="h-full w-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCauf4fPp2yWvh3h40CizIhc5HSvDy5T566RQdwo3CuYXzsIEAQjqSE0RfTGgd0u4djX4ziXcjqMuoTbL99bXrBbIR_L_-EtnezXsuSRgXW3OhaLfN23nrZKwarprIkNTEhQhNz1eAE_P2z5LeSTxT9iiqS4Q4VqMtjulcepeEbBmJ4ckjpoML8rmqeGbX7iiQgfsan3i5wfS2KTIasRRZQKaLTMF6UriskqkqmqTGhPq0EBmbrE0E9Jt3m_8_KAY1ivjRS4uq5WAk"/>
+</div>
+</div>
+<!-- Network Activity Chart -->
+<div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">Ağ Etkinliği</h2>
+<div class="mt-4 h-64">
+<img alt="A dual-line graph showing network activity. The green line represents download speed hovering around 150 Mbps, and the orange line represents upload speed around 25 Mbps." class="h-full w-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTsfn5uxK2oOplZ-KTtoyFPApKkerN641lyPfftmL4bdouNOB7wU-ORGJN_Nc1w68EvBw_vEHifzR0P_eiOcXhOCG8DppR_tox0ttyqXGHGg8UQ8WtyQgS8U-J67qy3N2V9h2iilwru63KnA7oMoRJp7hvBODF7jaEBjBPZro4yJbSqKME4vq_bgWEq5ceQOVkpIbOGhZVzzXiuGYh5IOKvmHu9emalLdCHPsVMUVS9Hfe4O4gSyYPluyzm3Jr2Odb0VyaZy84PZU"/>
+</div>
+</div>
+</div>
+<!-- Storage and Memory -->
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
+<div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">Bellek ve Depolama</h2>
+<div class="mt-6 flex flex-col gap-8">
+<!-- Memory Donut -->
+<div class="flex items-center gap-4">
+<div class="relative flex h-24 w-24 items-center justify-center">
+<img alt="A donut chart showing 51.25% usage." class="absolute inset-0 size-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAJ0dSiZQ7nwSpxhvyBxiy3d34g25XM0JifNGEPvC73y6QjbC--0RXAnM3Csqk9iQkSgmtYj4CiStWZReNED371vjavRel5xl2bAWCRhI28CMRfauFXVepcPDzAmyV8oWpPREl2DAYFGjUEy6DSPo2DNX3fgn85LcSUKBDeQblEPLh5BszCREsbGkfYgasDNYeKe-oNAwF4jBPorAUyaf5jO3vIapPU6VpjS_cP8bTg2KQ5wBuY0UEBszbfADznDisaguNNi_t36A"/>
+<span class="text-lg font-bold text-slate-900 dark:text-white">51%</span>
+</div>
+<div>
+<p class="font-semibold text-slate-900 dark:text-white">RAM Kullanımı</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">8.2 GB / 16 GB</p>
+</div>
+</div>
+<!-- Storage Donut -->
+<div class="flex items-center gap-4">
+<div class="relative flex h-24 w-24 items-center justify-center">
+<img alt="A donut chart showing 75% usage." class="absolute inset-0 size-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEonIElA6XEZTMqC_q4yW1lgYf2W7BbADWPguZJLrjsdIRZpIvn85U5L2UxCiLzlRg-kBOEei5zNCiQdDnbBccugf7Ox1NsiO5cEXslviXmDfL70Yxo0Z5CHSgy2R3lePAasgsT5esV1jSPkDdMNI_ZJ-ER-mSFIuoYgGP1ht64NGGiL50LFFkdB-XFep5vn4gRqRTg-wZDi9MJHI8H1xddy0SIWMEWTbJRo9EMAERD66NG6s5zxbQjAAp3w3pqjMWQN7w6huZUhc"/>
+<span class="text-lg font-bold text-slate-900 dark:text-white">75%</span>
+</div>
+<div>
+<p class="font-semibold text-slate-900 dark:text-white">Depolama (C:)</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">375 GB / 500 GB</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Processes Table -->
+<div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">İşlemler</h2>
+<div class="mt-4 flow-root">
+<div class="-mx-6 -my-2 overflow-x-auto">
+<div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+<thead>
+<tr>
+<th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 dark:text-white sm:pl-0" scope="col">İşlem Adı</th>
+<th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white" scope="col">CPU %</th>
+<th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white" scope="col">Bellek</th>
+<th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white" scope="col">Kullanıcı</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+<tr>
+<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 dark:text-white sm:pl-0">kernel_task</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">8.2%</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">1.2 GB</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">root</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 dark:text-white sm:pl-0">chrome.exe</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">5.1%</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">850 MB</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">user</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 dark:text-white sm:pl-0">Code.exe</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">3.5%</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">620 MB</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">user</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 dark:text-white sm:pl-0">msedgewebview2.exe</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">2.8%</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">430 MB</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">user</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 dark:text-white sm:pl-0">Docker.service</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">1.9%</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">210 MB</td>
+<td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">system</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

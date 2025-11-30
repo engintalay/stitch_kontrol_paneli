@@ -5,6 +5,21 @@ require_once __DIR__ . '/auth_check.php';
 $db = new SQLite3(__DIR__ . '/users.db');
 $db->exec('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, password TEXT, role TEXT, permissions TEXT DEFAULT "")');
 
+// Ensure compatibility with older DBs: add 'permissions' column if it's missing
+try {
+    $colsRes = $db->query("PRAGMA table_info('users')");
+    $cols = [];
+    while ($c = $colsRes->fetchArray(SQLITE3_ASSOC)) {
+        $cols[] = $c['name'];
+    }
+    if (!in_array('permissions', $cols)) {
+        // add the column with a default empty JSON array string for older rows
+        $db->exec("ALTER TABLE users ADD COLUMN permissions TEXT DEFAULT ''");
+    }
+} catch (Exception $e) {
+    // If migration fails, continue — queries will report errors which will be handled below
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
 function error($msg) {

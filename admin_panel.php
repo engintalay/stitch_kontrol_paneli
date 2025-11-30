@@ -95,7 +95,10 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
         <div class="flex items-center gap-8 flex-1">
           <span class="font-bold text-xl text-primary">Admin Paneli</span>
         </div>
-        <a href="home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+        <div class="flex items-center gap-3">
+          <button id="toggleSessionDebug" class="mr-3 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-sm rounded">Oturum Bilgisi</button>
+          <a href="home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+        </div>
       </header>
       <main class="flex-1 overflow-y-auto p-8">
         <div class="max-w-2xl mx-auto">
@@ -249,9 +252,22 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
           </div>
         </div>
       </main>
+      <div id="sessionDebug" class="hidden fixed bottom-4 right-4 w-80 bg-white dark:bg-[#23272f] border border-gray-200 dark:border-gray-700 rounded p-4 shadow-lg text-xs overflow-auto max-h-60">
+        <div class="flex justify-between items-center mb-2">
+          <strong>SESSION</strong>
+          <button id="closeSessionDebug" class="text-sm text-gray-500">Kapat</button>
+        </div>
+        <pre style="white-space:pre-wrap;word-break:break-word;"><?php echo htmlspecialchars(print_r($_SESSION, true)); ?></pre>
+      </div>
     </div>
   </div>
   <script>
+    document.getElementById('toggleSessionDebug').addEventListener('click', function(){
+      document.getElementById('sessionDebug').classList.toggle('hidden');
+    });
+    document.getElementById('closeSessionDebug').addEventListener('click', function(){
+      document.getElementById('sessionDebug').classList.add('hidden');
+    });
     // Menü ve içerik yönetimi
     const menuItems = document.querySelectorAll('.menu-item');
     const contentSections = document.querySelectorAll('.content-section');
@@ -286,23 +302,43 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
 
     function fetchModules() {
       moduleTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-400">Yükleniyor...</td></tr>';
-      fetch('module_api.php?action=list')
-        .then(r => r.json())
+      fetch('module_api.php?action=list', { headers: { 'Accept': 'application/json' } })
+        .then(async r => {
+          if (!r.ok) {
+            const txt = await r.text();
+            const msg = txt || 'Sunucu hatası';
+            moduleTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">' + msg + '</td></tr>';
+            showToast(msg, 'error');
+            throw new Error('Module API error: ' + r.status);
+          }
+          try {
+            return await r.json();
+          } catch (e) {
+            const msg = 'Geçersiz JSON yanıt';
+            moduleTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">' + msg + '</td></tr>';
+            showToast(msg, 'error');
+            throw e;
+          }
+        })
         .then(data => {
-          if (!data.ok) return moduleTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">' + (data.error || 'Hata!') + '</td></tr>';
-          if (!data.modules.length) return moduleTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400">Modül bulunamadı.</td></tr>';
+          if (!data || !data.ok) return moduleTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">' + ((data && data.error) || 'Hata!') + '</td></tr>';
+          if (!Array.isArray(data.modules) || !data.modules.length) return moduleTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400">Modül bulunamadı.</td></tr>';
           moduleTableBody.innerHTML = data.modules.map(m => `
             <tr class="border-b border-gray-100 dark:border-gray-800">
               <td class="py-2 px-3">${m.id}</td>
-              <td class="py-2 px-3">${m.name}</td>
-              <td class="py-2 px-3">${m.desc}</td>
-              <td class="py-2 px-3">${m.status}</td>
+              <td class="py-2 px-3">${m.name || ''}</td>
+              <td class="py-2 px-3">${m.desc || ''}</td>
+              <td class="py-2 px-3">${m.status || ''}</td>
               <td class="py-2 px-3">
-                <button class="text-blue-600 hover:underline mr-2" onclick="editModule(${m.id}, '${m.name.replace(/'/g, "&#39;")}', '${m.desc.replace(/'/g, "&#39;")}', '${m.status}')">Düzenle</button>
+                <button class="text-blue-600 hover:underline mr-2" onclick="editModule(${m.id}, '${(m.name||'').replace(/'/g, "&#39;")}', '${(m.desc||'').replace(/'/g, "&#39;")}', '${m.status||''}')">Düzenle</button>
                 <button class="text-red-600 hover:underline" onclick="deleteModule(${m.id})">Sil</button>
               </td>
             </tr>
           `).join('');
+        })
+        .catch(err => {
+          console.error('fetchModules error', err);
+          showToast(err.message || 'Bir hata oluştu', 'error');
         });
     }
 
@@ -379,23 +415,43 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
 
             function fetchUsers(q = '') {
               userTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-400">Yükleniyor...</td></tr>';
-              fetch('user_api.php?action=list&q=' + encodeURIComponent(q))
-                .then(r => r.json())
+              fetch('user_api.php?action=list&q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+                .then(async r => {
+                  if (!r.ok) {
+                    const txt = await r.text();
+                    const msg = txt || 'Sunucu hatası';
+                    userTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">' + msg + '</td></tr>';
+                    showToast(msg, 'error');
+                    throw new Error('User API error: ' + r.status);
+                  }
+                  try {
+                    return await r.json();
+                  } catch (e) {
+                    const msg = 'Geçersiz JSON yanıt';
+                    userTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">' + msg + '</td></tr>';
+                    showToast(msg, 'error');
+                    throw e;
+                  }
+                })
                 .then(data => {
-                  if (!data.ok) return userTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">' + (data.error || 'Hata!') + '</td></tr>';
-                  if (!data.users.length) return userTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400">Kullanıcı bulunamadı.</td></tr>';
+                  if (!data || !data.ok) return userTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">' + ((data && data.error) || 'Hata!') + '</td></tr>';
+                  if (!Array.isArray(data.users) || !data.users.length) return userTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400">Kullanıcı bulunamadı.</td></tr>';
                   userTableBody.innerHTML = data.users.map(u => `
                     <tr class="border-b border-gray-100 dark:border-gray-800">
                       <td class="py-2 px-3">${u.id}</td>
-                      <td class="py-2 px-3">${u.email}</td>
-                      <td class="py-2 px-3">${u.role}</td>
+                      <td class="py-2 px-3">${u.email || ''}</td>
+                      <td class="py-2 px-3">${u.role || ''}</td>
                       <td class="py-2 px-3">${(u.permissions||[]).map(p => `<span class='inline-block bg-primary/10 text-primary rounded px-2 py-0.5 text-xs mr-1 mb-1'>${p}</span>`).join('')}</td>
                       <td class="py-2 px-3">
-                        <button class="text-blue-600 hover:underline mr-2" onclick="editUser(${u.id}, '${u.email.replace(/'/g, "&#39;")}', '${u.role}', ${JSON.stringify(u.permissions||[]).replace(/"/g, '&quot;')})">Düzenle</button>
+                        <button class="text-blue-600 hover:underline mr-2" onclick="editUser(${u.id}, '${(u.email||'').replace(/'/g, "&#39;")}', '${u.role || ''}', ${JSON.stringify(u.permissions||[]).replace(/"/g, '&quot;')})">Düzenle</button>
                         <button class="text-red-600 hover:underline" onclick="deleteUser(${u.id})">Sil</button>
                       </td>
                     </tr>
                   `).join('');
+                })
+                .catch(err => {
+                  console.error('fetchUsers error', err);
+                  showToast(err.message || 'Bir hata oluştu', 'error');
                 });
             }
 
@@ -466,6 +522,33 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
             }
 
             fetchUsers();
+            </script>
+            <script>
+              // Toast container and helper
+              (function(){
+                const container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'fixed top-4 right-4 z-50 space-y-2';
+                document.body.appendChild(container);
+
+                window.showToast = function(message, type = 'info', timeout = 5000) {
+                  const toast = document.createElement('div');
+                  const bg = type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-900 text-white';
+                  toast.className = `px-4 py-2 rounded shadow ${bg} max-w-xs break-words`;
+                  toast.style.opacity = '0';
+                  toast.style.transition = 'opacity 150ms ease-in-out, transform 150ms ease-in-out';
+                  toast.innerText = message;
+                  container.appendChild(toast);
+                  // animate in
+                  requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+                  const hide = () => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => { toast.remove(); }, 180);
+                  };
+                  const t = setTimeout(hide, timeout);
+                  toast.addEventListener('click', () => { clearTimeout(t); hide(); });
+                };
+              })();
             </script>
             </div>
           </div>

@@ -6,18 +6,37 @@ if (!isset($_SESSION['user_role'])) {
     exit;
 }
 
-// User-specific media_root configuration
-$mediaRootFile = __DIR__ . '/../medya_tarayıcı/album/media_root.txt';
+// Database setup for user-specific settings
+$db = new SQLite3(__DIR__ . '/../settings.db');
+$db->exec('CREATE TABLE IF NOT EXISTS user_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    setting_key TEXT NOT NULL,
+    setting_value TEXT NOT NULL,
+    UNIQUE(user_id, setting_key)
+)');
+
+// Handle media_root setting
+$userId = $_SESSION['user_id'];
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['media_root'])) {
     $mediaRoot = trim($_POST['media_root']);
-    if (file_put_contents($mediaRootFile, $mediaRoot) === false) {
-        $message = 'Medya root dizini kaydedilemedi!';
-    } else {
+    $stmt = $db->prepare('INSERT INTO user_settings (user_id, setting_key, setting_value) VALUES (:user_id, :key, :value)
+                          ON CONFLICT(user_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value');
+    $stmt->bindValue(':user_id', $userId, SQLITE3_TEXT);
+    $stmt->bindValue(':key', 'media_root', SQLITE3_TEXT);
+    $stmt->bindValue(':value', $mediaRoot, SQLITE3_TEXT);
+    if ($stmt->execute()) {
         $message = 'Medya root dizini başarıyla kaydedildi!';
+    } else {
+        $message = 'Medya root dizini kaydedilemedi!';
     }
 }
-$currentMediaRoot = file_exists($mediaRootFile) ? file_get_contents($mediaRootFile) : '';
+$stmt = $db->prepare('SELECT setting_value FROM user_settings WHERE user_id = :user_id AND setting_key = :key');
+$stmt->bindValue(':user_id', $userId, SQLITE3_TEXT);
+$stmt->bindValue(':key', 'media_root', SQLITE3_TEXT);
+$result = $stmt->execute();
+$currentMediaRoot = ($row = $result->fetchArray(SQLITE3_ASSOC)) ? $row['setting_value'] : '';
 
 $title = 'Kontrol Paneli';
 $icon = 'settings';

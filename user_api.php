@@ -91,12 +91,26 @@ if ($action === 'update') {
     $role = $_POST['role'] ?? '';
     $permissions = $_POST['permissions'] ?? [];
     if (!$id) error('ID zorunlu.');
-    $stmt = $db->prepare('UPDATE users SET role = :role, permissions = :permissions WHERE id = :id');
-    if (!$stmt) error('Veritabanı hatası (güncelleme hazırlanamadı).');
+    // Allow optional password update. If provided, hash and include in the UPDATE.
+    $password = $_POST['password'] ?? '';
+    $setParts = ['role = :role', 'permissions = :permissions'];
+    if ($password !== '') {
+        $setParts[] = "$passwordColumn = :password";
+    }
+    $sql = 'UPDATE users SET ' . implode(', ', $setParts) . ' WHERE id = :id';
+    $stmt = $db->prepare($sql);
+    if (!$stmt) error('Veritabanı hatası (güncelleme hazırlanamadı): ' . $db->lastErrorMsg());
     $stmt->bindValue(':role', $role, SQLITE3_TEXT);
     $stmt->bindValue(':permissions', json_encode($permissions), SQLITE3_TEXT);
+    if ($password !== '') {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt->bindValue(':password', $hash, SQLITE3_TEXT);
+    }
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
-    $stmt->execute();
+    $res = $stmt->execute();
+    if ($res === false) {
+        error('Güncelleme başarısız: ' . $db->lastErrorMsg());
+    }
     echo json_encode(['ok' => true]);
     exit;
 }

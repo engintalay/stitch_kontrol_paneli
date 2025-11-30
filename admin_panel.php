@@ -461,7 +461,9 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
               userEmail.value = email;
               userRole.value = role;
               userPassword.value = '';
-              userPasswordWrap.style.display = edit ? 'none' : '';
+              // Show password field for both create and edit. Make it required only for create.
+              userPasswordWrap.style.display = '';
+              try { userPassword.required = !edit; } catch (e) {}
               // Yetkiler
               document.querySelectorAll('#userForm input[type=checkbox][name="permissions[]"]').forEach(cb => {
                 cb.checked = permissions.includes(cb.value);
@@ -500,7 +502,9 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
               payload.append('action', isEdit ? 'update' : 'add');
               if (isEdit) payload.append('id', form.get('id'));
               payload.append('email', form.get('email'));
-              if (!isEdit) payload.append('password', form.get('password'));
+              // Send password if provided (for create it's required, for edit it's optional)
+              const pw = form.get('password');
+              if (pw) payload.append('password', pw);
               payload.append('role', form.get('role'));
               permissions.forEach(p => payload.append('permissions[]', p));
               fetch('user_api.php', {

@@ -116,10 +116,77 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
             Admin Paneli
           </h1>
           <p class="text-gray-500 dark:text-gray-400 mb-6">Yönetici işlemleri ve sistem yönetimi burada yapılır.</p>
-          <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-6 min-h-[120px] flex items-center justify-center">
-            <!-- Buraya admin işlemleri eklenecek -->
+          <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-0 min-h-[120px]">
+            <div class="border-b border-gray-200 dark:border-gray-700 flex">
+              <button id="tab-panel" class="px-6 py-3 text-sm font-semibold focus:outline-none tab-active text-primary border-b-2 border-primary bg-white dark:bg-[#23272f]">Panel</button>
+              <button id="tab-users" class="px-6 py-3 text-sm font-semibold focus:outline-none text-gray-600 dark:text-gray-300 hover:text-primary">Kullanıcı Yönetimi</button>
+            </div>
+            <div id="tab-content-panel" class="p-6">
+              Yönetici işlemleri ve sistem yönetimi burada yapılır.
+            </div>
+            <div id="tab-content-users" class="p-6 hidden">
+              <div class="flex justify-between mb-4">
+                <button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                  <span class="material-symbols-outlined">person_add</span>
+                  Yeni Kullanıcı Ekle
+                </button>
+                <form method="get" class="flex items-center gap-2">
+                  <input type="text" name="q" placeholder="Kullanıcı ara..." class="form-input rounded-lg px-3 py-2 border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#23272f] text-sm"/>
+                  <button type="submit" class="px-3 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                    <span class="material-symbols-outlined text-base">search</span>
+                  </button>
+                </form>
+              </div>
+              <table class="min-w-full text-sm">
+                <thead>
+                  <tr class="border-b border-gray-200 dark:border-gray-700">
+                    <th class="py-2 px-3 text-left">ID</th>
+                    <th class="py-2 px-3 text-left">E-posta</th>
+                    <th class="py-2 px-3 text-left">Rol</th>
+                    <th class="py-2 px-3 text-left">İşlemler</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Örnek kullanıcı satırı -->
+                  <tr class="border-b border-gray-100 dark:border-gray-800">
+                    <td class="py-2 px-3">1</td>
+                    <td class="py-2 px-3">admin@example.com</td>
+                    <td class="py-2 px-3">admin</td>
+                    <td class="py-2 px-3">
+                      <button class="text-blue-600 hover:underline mr-2">Düzenle</button>
+                      <button class="text-red-600 hover:underline">Sil</button>
+                    </td>
+                  </tr>
+                  <!-- /Örnek kullanıcı satırı -->
+                </tbody>
+              </table>
+            </div>
           </div>
           <div class="mt-8 text-center text-sm text-gray-600 dark:text-gray-300">
+            </main>
+            <script>
+            // Sekmeli içerik yönetimi
+            const tabPanel = document.getElementById('tab-panel');
+            const tabUsers = document.getElementById('tab-users');
+            const contentPanel = document.getElementById('tab-content-panel');
+            const contentUsers = document.getElementById('tab-content-users');
+            tabPanel.addEventListener('click', function() {
+              tabPanel.classList.add('tab-active', 'text-primary', 'border-b-2', 'border-primary', 'bg-white', 'dark:bg-[#23272f]');
+              tabPanel.classList.remove('text-gray-600', 'dark:text-gray-300', 'hover:text-primary');
+              tabUsers.classList.remove('tab-active', 'text-primary', 'border-b-2', 'border-primary', 'bg-white', 'dark:bg-[#23272f]');
+              tabUsers.classList.add('text-gray-600', 'dark:text-gray-300', 'hover:text-primary');
+              contentPanel.classList.remove('hidden');
+              contentUsers.classList.add('hidden');
+            });
+            tabUsers.addEventListener('click', function() {
+              tabUsers.classList.add('tab-active', 'text-primary', 'border-b-2', 'border-primary', 'bg-white', 'dark:bg-[#23272f]');
+              tabUsers.classList.remove('text-gray-600', 'dark:text-gray-300', 'hover:text-primary');
+              tabPanel.classList.remove('tab-active', 'text-primary', 'border-b-2', 'border-primary', 'bg-white', 'dark:bg-[#23272f]');
+              tabPanel.classList.add('text-gray-600', 'dark:text-gray-300', 'hover:text-primary');
+              contentPanel.classList.add('hidden');
+              contentUsers.classList.remove('hidden');
+            });
+            </script>
             <?php if (isset($_SESSION['user_email']) || isset($_SESSION['user_id'])): ?>
               <span class="font-semibold">Giriş yapan kullanıcı:</span>
               <?php

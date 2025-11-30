@@ -36,8 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $result->fetchArray(SQLITE3_ASSOC);
     if ($user) {
         $_SESSION['login_attempts'] = 0;
-        echo "Giriş başarılı! Hoşgeldiniz, " . h($user['email']) . " (Rol: " . h($user['role']) . ")";
-        // Burada oturum açma işlemleri yapılabilir (ör: $_SESSION['user_id'] = $user['id'];)
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_email'] = $user['email'];
+        $_SESSION['user_role'] = $user['role'];
+        header('Location: home.php');
+        exit;
     } else {
         $_SESSION['login_attempts']++;
         echo "Giriş başarısız! Bilgilerinizi kontrol edin.";

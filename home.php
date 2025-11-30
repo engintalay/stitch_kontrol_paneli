@@ -4,26 +4,31 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
 // SQLite ile modül veritabanı
 $db = new SQLite3('modules.db');
 $db->exec('CREATE TABLE IF NOT EXISTS modules (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    icon TEXT NOT NULL,
-    description TEXT NOT NULL,
-    link TEXT NOT NULL
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  icon TEXT NOT NULL,
+  description TEXT NOT NULL,
+  link TEXT NOT NULL,
+  admin_only INTEGER DEFAULT 0
 )');
 // Eğer hiç modül yoksa örnek modülleri ekle
 $res = $db->querySingle('SELECT COUNT(*) FROM modules');
 if ($res == 0) {
-    $db->exec("INSERT INTO modules (title, icon, description, link) VALUES
-        ('Kontrol Paneli', 'settings', 'Sistem ayarlarını yönetin', 'kontrol_paneli/code.html'),
-        ('Medya Tarayıcı', 'perm_media', 'Medya dosyalarınızı yönetin', 'medya_tarayıcı/code.html'),
-        ('Sistem Monitörü', 'monitor_heart', 'Sistem durumunu izleyin', 'sistem_monitörü/code.html'),
-        ('Yapay Zeka Sohbet Botu', 'smart_toy', 'Yapay zeka ile sohbet edin', 'yapay_zeka_sohbet_botu/code.html')
-    ");
+  $db->exec("INSERT INTO modules (title, icon, description, link, admin_only) VALUES
+    ('Kontrol Paneli', 'settings', 'Sistem ayarlarını yönetin', 'kontrol_paneli/code.php', 0),
+    ('Medya Tarayıcı', 'perm_media', 'Medya dosyalarınızı yönetin', 'medya_tarayıcı/code.php', 0),
+    ('Sistem Monitörü', 'monitor_heart', 'Sistem durumunu izleyin', 'sistem_monitörü/code.php', 0),
+    ('Yapay Zeka Sohbet Botu', 'smart_toy', 'Yapay zeka ile sohbet edin', 'yapay_zeka_sohbet_botu/code.php', 0),
+    ('Sunucu Kontrolü', 'settings', 'Sunucu özelliklerini görüntüleyin', 'server_check.php', 1),
+    ('Admin Paneli', 'admin_panel_settings', 'Yönetici işlemleri', 'admin_panel.php', 1)
+  ");
 }
 $modules = [];
+$is_admin = isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
 $res = $db->query('SELECT * FROM modules');
 while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
-    $modules[] = $row;
+  if ($row['admin_only'] && !$is_admin) continue;
+  $modules[] = $row;
 }
 ?>
 <!DOCTYPE html>

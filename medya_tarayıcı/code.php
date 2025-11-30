@@ -77,8 +77,8 @@ require_once __DIR__ . '/../auth_check.php';
         <span class="material-symbols-outlined text-primary text-3xl">dashboard</span>
         <span class="font-bold text-xl text-primary"><?= htmlspecialchars($title) ?></span>
       </div>
-      <a href="/home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
-      <a href="/logout.php" class="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
+      <a href="../home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+      <a href="../logout.php" class="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
     </header>
     <main class="flex-1 p-8">
       <div class="max-w-4xl mx-auto">

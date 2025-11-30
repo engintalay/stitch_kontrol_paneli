@@ -4,7 +4,11 @@
 header('Content-Type: application/json');
 
 
+error_log('[media_browser.php] Başlatıldı');
+
+
 $mediaRootFile = __DIR__ . '/media_root.txt';
+
 if (file_exists($mediaRootFile)) {
     $lines = file($mediaRootFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     $mediaRoot = '';
@@ -25,9 +29,64 @@ if (file_exists($mediaRootFile)) {
     echo json_encode(['error' => 'media_root.txt bulunamadı', 'file' => $mediaRootFile]);
     exit;
 }
-$baseDir = realpath($mediaRoot);
+error_log('[media_browser.php] mediaRoot yolu: ' . $mediaRoot);
+$baseDir = false;
+if ($mediaRoot !== '') {
+    // Eğer yol absolute değilse, proje köküne göre çöz
+    if ($mediaRoot[0] === '/') {
+        $baseDir = realpath($mediaRoot);
+    } else {
+        // Proje kökü: media_browser.php dosyasının 2 üstü
+        $projectRoot = realpath(__DIR__ . '/../..');
+        error_log('[media_browser.php] projectRoot: ' . $projectRoot);
+        $baseDir = realpath($projectRoot . '/' . $mediaRoot);
+    }
+}
+error_log('[media_browser.php] Çözümlenen baseDir yolu: ' . ($baseDir ?: 'false'));
+error_log('[media_browser.php] mediaRoot yolu: ' . $mediaRoot);
 $relPath = isset($_GET['path']) ? $_GET['path'] : '';
 $relPath = trim($relPath, '/');
+
+error_log('[media_browser.php] İstenen relatif yol: ' . $relPath);
+// mediaRoot klasörü erişim ve içerik kontrolü
+if (!$baseDir || !is_dir($baseDir)) {
+    $msg = 'mediaRoot klasörü bulunamadı veya dizin değil: ' . $mediaRoot . ' (çözümlenen: ' . ($baseDir ?: 'false') . ')';
+    error_log('[media_browser.php] ' . $msg);
+    error_log($baseDir);
+    echo json_encode(['error' => $msg, 'debug' => [
+        'mediaRoot' => $mediaRoot,
+        'baseDir' => $baseDir,
+        'relPath' => $relPath,
+        'request' => $_REQUEST
+    ]]);
+    exit;
+}
+if (!is_readable($baseDir)) {
+    $msg = 'mediaRoot klasörüne okuma izni yok: ' . $baseDir;
+    error_log('[media_browser.php] ' . $msg);
+    echo json_encode(['error' => $msg, 'debug' => [
+        'mediaRoot' => $mediaRoot,
+        'baseDir' => $baseDir,
+        'relPath' => $relPath,
+        'request' => $_REQUEST
+    ]]);
+    exit;
+}
+$testFiles = @scandir($baseDir);
+if ($testFiles === false || count(array_diff($testFiles, ['.','..'])) === 0) {
+    $msg = 'mediaRoot klasörü boş veya okunamıyor: ' . $baseDir;
+    error_log('[media_browser.php] ' . $msg);
+    echo json_encode(['error' => $msg, 'debug' => [
+        'mediaRoot' => $mediaRoot,
+        'baseDir' => $baseDir,
+        'relPath' => $relPath,
+        'request' => $_REQUEST
+    ]]);
+    exit;
+} else {
+    // Klasör erişimi ve içerik kontrolü başarılı
+    error_log('[media_browser.php] mediaRoot klasörü erişim ve içerik kontrolü başarılı: ' . $baseDir);
+}
 
 
 $debug = [];

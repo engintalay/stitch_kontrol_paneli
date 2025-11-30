@@ -117,4 +117,13 @@ $description = 'Medya dosyalarınızı yönetin';
   </script>
   <script src="album/media_browser.js"></script>
 </body>
+  </html>
+
+    <!-- Modal yapısı: media_browser.js ile tam uyumlu -->
+    <div id="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+      <div id="modal-media" style="max-width:90vw; max-height:90vh;"></div>
+      <button onclick="closeModal()" style="position:absolute;top:16px;right:16px;font-size:2em;z-index:2;">&times;</button>
+      <button onclick="showPrev()" style="position:absolute;left:16px;top:50%;font-size:2em;z-index:2;">&#8592;</button>
+      <button onclick="showNext()" style="position:absolute;right:56px;top:50%;font-size:2em;z-index:2;">&#8594;</button>
+    </div>
 </html>

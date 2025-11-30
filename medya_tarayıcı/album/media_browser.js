@@ -8,12 +8,12 @@ function getPathFromURL() {
 }
 
 // Kök medya dizinini buradan ayarlayın:
-const MEDIA_ROOT = window.MEDIA_ROOT || '../media';
+const MEDIA_ROOT = window.MEDIA_ROOT || '../../media';
+
 function fetchItems(path = '', push = true) {
     fetch('album/media_browser.php?path=' + encodeURIComponent(path))
         .then(res => res.json())
         .then(data => {
-            console.log('media_browser.php yanıtı:', data);
             if (data.error) {
                 alert(data.error);
                 return;
@@ -28,9 +28,7 @@ function fetchItems(path = '', push = true) {
                 } else {
                     history.replaceState({ path: currentPath }, '', url);
                 }
-            } catch (e) {
-                // ignore history errors in older browsers
-            }
+            } catch (e) {}
         });
 }
 
@@ -71,23 +69,21 @@ function renderBrowser() {
             }
         };
         let thumb;
+        let overlay;
         if (item.type === 'image') {
             thumb = document.createElement('img');
-            // Sadece media klasörü altındaki göreli yol gönderilmeli
             let thumbPath = item.path;
-            thumb.src = 'thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
+            thumb.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
             console.log('thumb src:', thumb.src);
             thumb.className = 'thumb';
             thumb.loading = 'lazy';
         } else if (item.type === 'video') {
-            // Use an actual thumbnail image (WebP if supported) and overlay a play icon
             thumb = document.createElement('img');
             thumb.className = 'thumb';
             thumb.loading = 'lazy';
             let thumbPath = item.path;
-            thumb.src = 'thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
-            // overlay will be appended to the parent .item div so it sits over the img
-            const overlay = document.createElement('div');
+            thumb.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
+            overlay = document.createElement('div');
             overlay.className = 'play-overlay';
             overlay.innerText = '▶';
         } else if (item.type === 'dir') {
@@ -116,14 +112,12 @@ function renderBrowser() {
             thumb.innerText = '📄';
         }
         div.appendChild(thumb);
-        // If overlay created (video), append overlay over thumb
         if (typeof overlay !== 'undefined') {
             div.appendChild(overlay);
         }
         const label = document.createElement('div');
         label.innerText = item.name;
         div.appendChild(label);
-        // Dosya boyutu gösterimi
         if (item.size && typeof item.size === 'number') {
             const sizeDiv = document.createElement('div');
             sizeDiv.style.fontSize = '0.9em';
@@ -132,6 +126,8 @@ function renderBrowser() {
             div.appendChild(sizeDiv);
         }
         browser.appendChild(div);
+    });
+}
 // Dosya boyutunu okunabilir formata çeviren fonksiyon
 function formatSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
@@ -146,8 +142,6 @@ function goUp() {
     parts.pop();
     const parent = parts.join('/');
     fetchItems(parent, true);
-}
-    });
 }
 
 function openModal(idx) {
@@ -190,19 +184,23 @@ function showNext() {
 function showModalMedia() {
     const item = items[currentIndex];
     const modalMedia = document.getElementById('modal-media');
+    if (!modalMedia) {
+        alert('Hata: #modal-media elementi bulunamadı!\nSayfa tam yüklenmemiş olabilir.');
+        return;
+    }
     modalMedia.innerHTML = '';
     if (item.type === 'image') {
         const img = document.createElement('img');
-        img.src = 'media_serve.php?path=' + encodeURIComponent(item.path);
+        img.src = 'album/media_serve.php?path=' + encodeURIComponent(item.path);
         modalMedia.appendChild(img);
     } else if (item.type === 'video') {
         const video = document.createElement('video');
-        video.src = 'media_serve.php?path=' + encodeURIComponent(item.path);
+        video.src = 'album/media_serve.php?path=' + encodeURIComponent(item.path);
         video.controls = true;
         video.autoplay = true;
         video.preload = 'metadata';
         // set poster from thumbnail (larger size)
-        video.poster = 'thumb.php?path=' + encodeURIComponent(item.path) + '&size=800&format=webp';
+        video.poster = 'album/thumb.php?path=' + encodeURIComponent(item.path) + '&size=800&format=webp';
         modalMedia.appendChild(video);
     }
 }

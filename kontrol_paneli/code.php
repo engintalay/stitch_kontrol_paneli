@@ -6,6 +6,14 @@ if (!isset($_SESSION['user_role'])) {
     exit;
 }
 
+// User-specific media_root configuration
+$mediaRootFile = __DIR__ . '/../medya_tarayıcı/album/media_root.txt';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['media_root'])) {
+    $mediaRoot = trim($_POST['media_root']);
+    file_put_contents($mediaRootFile, $mediaRoot);
+}
+$currentMediaRoot = file_exists($mediaRootFile) ? file_get_contents($mediaRootFile) : '';
+
 $title = 'Kontrol Paneli';
 $icon = 'settings';
 $description = 'Sistem ayarlarını yönetin';
@@ -61,7 +69,7 @@ $description = 'Sistem ayarlarını yönetin';
         <span class="material-symbols-outlined text-primary text-3xl">dashboard</span>
         <span class="font-bold text-xl text-primary"><?= htmlspecialchars($title) ?></span>
       </div>
-      <a href="/home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+      <a href="../home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
     </header>
     <main class="flex-1 p-8">
       <div class="max-w-2xl mx-auto">
@@ -72,7 +80,11 @@ $description = 'Sistem ayarlarını yönetin';
         <p class="text-gray-500 dark:text-gray-400 mb-6"><?= htmlspecialchars($description) ?></p>
         <!-- Dinamik içerik buraya gelecek -->
         <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-6">
-          <p>Burada <?= htmlspecialchars($title) ?> ile ilgili dinamik içerik yer alacak.</p>
+          <form method="POST" class="space-y-4">
+            <label for="media_root" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Medya Root Dizini</label>
+            <input type="text" id="media_root" name="media_root" value="<?= htmlspecialchars($currentMediaRoot) ?>" class="form-input w-full" placeholder="/path/to/media" required />
+            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Kaydet</button>
+          </form>
         </div>
       </div>
     </main>

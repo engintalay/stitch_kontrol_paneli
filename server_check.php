@@ -86,7 +86,7 @@ $writable = is_writable(__DIR__);
                 <span class="material-symbols-outlined text-primary text-3xl">settings</span>
                 <span class="font-bold text-xl text-primary">Sunucu Kontrolü</span>
             </div>
-            <a href="/home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+            <a href="../home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
         </header>
         <main class="flex-1 p-8 flex items-center justify-center">
             <div class="w-full max-w-md p-8 bg-white dark:bg-[#181c23] rounded-xl shadow-lg">

@@ -95,7 +95,7 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
         <div class="flex items-center gap-8 flex-1">
           <span class="font-bold text-xl text-primary">Admin Paneli</span>
         </div>
-        <a href="/home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+        <a href="../home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
       </header>
       <main class="flex-1 overflow-y-auto p-8">
         <div class="max-w-2xl mx-auto">

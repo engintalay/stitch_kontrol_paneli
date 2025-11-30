@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (php_sapi_name() !== 'cli' && !isset($_SESSION['user_id'])) {
+    header('Location: /login.php');
+    exit;
+}
 // thumb.php: Küçük resim üretir ve .cache klasöründe saklar
 // Web: thumb.php?path=dosya/yolu.jpg&size=150
 // Bash: php thumb.php /media/disk1/Diger/yedek/2025/2025-01/2025-01-20/2025-01-20_23-23-01_3826.webp 150

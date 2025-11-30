@@ -55,18 +55,6 @@ if (!$baseDir || !is_dir($baseDir)) {
     error_log($baseDir);
     echo json_encode(['error' => $msg, 'debug' => [
         'mediaRoot' => $mediaRoot,
-        'baseDir' => $baseDir,
-        'relPath' => $relPath,
-        'request' => $_REQUEST
-    ]]);
-    exit;
-}
-if (!is_readable($baseDir)) {
-    $msg = 'mediaRoot klasörüne okuma izni yok: ' . $baseDir;
-    error_log('[media_browser.php] ' . $msg);
-    echo json_encode(['error' => $msg, 'debug' => [
-        'mediaRoot' => $mediaRoot,
-        'baseDir' => $baseDir,
         'relPath' => $relPath,
         'request' => $_REQUEST
     ]]);
@@ -86,15 +74,27 @@ if ($testFiles === false || count(array_diff($testFiles, ['.','..'])) === 0) {
 } else {
     // Klasör erişimi ve içerik kontrolü başarılı
     error_log('[media_browser.php] mediaRoot klasörü erişim ve içerik kontrolü başarılı: ' . $baseDir);
-}
-
-
 $debug = [];
 $debug['mediaRoot'] = $mediaRoot;
 $debug['baseDir'] = $baseDir;
 $debug['relPath'] = $relPath;
 $debug['request'] = $_REQUEST;
 
+        <?php
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login.php');
+            exit;
+        }
+        // media_browser.php
+        // /media klasöründen dosya ve klasörleri JSON olarak döner
+        header('Content-Type: application/json');
+
+        error_log('[media_browser.php] Başlatıldı');
+
+        $mediaRootFile = __DIR__ . '/media_root.txt';
+
+        if (file_exists($mediaRootFile)) {
 $targetDir = $relPath ? realpath($baseDir . '/' . $relPath) : $baseDir;
 $debug['targetDir'] = $targetDir;
 if (!$targetDir || strpos($targetDir, $baseDir) !== 0) {
@@ -114,6 +114,9 @@ if ($items === false) {
 }
 $result = [];
 // Geri seçeneği ekle (sadece kök altındaysa)
+        error_log('[media_browser.php] mediaRoot yolu: ' . $mediaRoot);
+        $baseDir = false;
+        if ($mediaRoot !== '') {
 if ($relPath) {
     $parentPath = dirname($relPath);
     if ($parentPath === '.') $parentPath = '';

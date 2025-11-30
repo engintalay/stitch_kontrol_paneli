@@ -1,9 +1,5 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /login.php');
-    exit;
-}
+require_once __DIR__ . '/../../auth_check.php';
 // media_serve.php: Güvenli medya dosyası sunumu, dinamik kök dizin ve detaylı hata/log desteği
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

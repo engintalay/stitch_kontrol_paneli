@@ -1,12 +1,8 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-  header('Location: /login.php');
-  exit;
-}
 $title = 'Medya Tarayıcı';
 $icon = 'perm_media';
 $description = 'Medya dosyalarınızı yönetin';
+require_once __DIR__ . '/../auth_check.php';
 ?>
 <!DOCTYPE html>
 <html class="dark" lang="tr">
@@ -82,6 +78,7 @@ $description = 'Medya dosyalarınızı yönetin';
         <span class="font-bold text-xl text-primary"><?= htmlspecialchars($title) ?></span>
       </div>
       <a href="/home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+      <a href="/logout.php" class="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
     </header>
     <main class="flex-1 p-8">
       <div class="max-w-4xl mx-auto">

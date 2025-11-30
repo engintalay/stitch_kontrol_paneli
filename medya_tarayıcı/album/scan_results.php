@@ -1,9 +1,5 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /login.php');
-    exit;
-}
+require_once __DIR__ . '/../../auth_check.php';
 // scan_results.php: Kişi seçimi ile ilgili resimleri gösteren sayfa
 header('Content-Type: text/html; charset=utf-8');
 $scanFile = __DIR__ . '/scan_results.json';

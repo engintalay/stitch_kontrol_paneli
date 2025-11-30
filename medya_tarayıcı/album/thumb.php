@@ -1,8 +1,6 @@
 <?php
-session_start();
-if (php_sapi_name() !== 'cli' && !isset($_SESSION['user_id'])) {
-    header('Location: /login.php');
-    exit;
+if (php_sapi_name() !== 'cli') {
+    require_once __DIR__ . '/../../auth_check.php';
 }
 // thumb.php: Küçük resim üretir ve .cache klasöründe saklar
 // Web: thumb.php?path=dosya/yolu.jpg&size=150

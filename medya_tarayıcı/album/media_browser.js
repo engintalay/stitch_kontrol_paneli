@@ -1,6 +1,9 @@
 let currentPath = '';
 let items = [];
 let currentIndex = 0;
+let thumbTotal = 0;
+let thumbLoaded = 0;
+let thumbFailed = 0;
 
 function getPathFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -56,6 +59,11 @@ function renderBrowser() {
     });
     const browser = document.getElementById('browser');
     browser.innerHTML = '';
+    // reset thumbnail counters
+    thumbTotal = 0;
+    thumbLoaded = 0;
+    thumbFailed = 0;
+    updateThumbStatus();
     items.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'item';
@@ -73,15 +81,22 @@ function renderBrowser() {
         if (item.type === 'image') {
             thumb = document.createElement('img');
             let thumbPath = item.path;
-            thumb.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
-            console.log('thumb src:', thumb.src);
             thumb.className = 'thumb';
             thumb.loading = 'lazy';
+            // count and attach listeners before setting src
+            thumbTotal++;
+            thumb.addEventListener('load', () => { thumbLoaded++; updateThumbStatus(); });
+            thumb.addEventListener('error', () => { thumbFailed++; updateThumbStatus(); });
+            thumb.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
         } else if (item.type === 'video') {
             thumb = document.createElement('img');
             thumb.className = 'thumb';
             thumb.loading = 'lazy';
             let thumbPath = item.path;
+            // count and attach listeners before src
+            thumbTotal++;
+            thumb.addEventListener('load', () => { thumbLoaded++; updateThumbStatus(); });
+            thumb.addEventListener('error', () => { thumbFailed++; updateThumbStatus(); });
             thumb.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
             overlay = document.createElement('div');
             overlay.className = 'play-overlay';
@@ -127,6 +142,8 @@ function renderBrowser() {
         }
         browser.appendChild(div);
     });
+    // After rendering all thumbs, ensure status is updated (in case loads happened synchronously)
+    updateThumbStatus();
 }
 // Dosya boyutunu okunabilir formata çeviren fonksiyon
 function formatSize(bytes) {
@@ -134,6 +151,15 @@ function formatSize(bytes) {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+function updateThumbStatus() {
+    const totalEl = document.getElementById('thumb-total');
+    const loadedEl = document.getElementById('thumb-loaded');
+    const failedEl = document.getElementById('thumb-failed');
+    if (totalEl) totalEl.innerText = thumbTotal;
+    if (loadedEl) loadedEl.innerText = thumbLoaded;
+    if (failedEl) failedEl.innerText = thumbFailed;
 }
 
 function goUp() {

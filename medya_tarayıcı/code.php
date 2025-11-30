@@ -76,6 +76,14 @@ try {
     #browser { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
     .item { width: 120px; max-width: 40vw; text-align: center; cursor: pointer; }
     .thumb { position: relative; width: 125px; height: 125px; max-width: 37vw; max-height: 37vw; object-fit: cover; border: 1px solid #ccc; }
+    /* Büyük emoji/text logoları için (klasör/dosya yer tutucuları) - sadece img olmayan .thumb'lara uygulanır */
+    .thumb:not(img) {
+      font-size: 2.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
     .play-overlay {
         position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
         width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,0.6);
@@ -155,6 +163,7 @@ try {
     @media (max-width: 600px) {
       .item { width: 48vw; max-width: 48vw; }
       .thumb { width: 50vw; height: 50vw; max-width: 50vw; max-height: 50vw; }
+      .thumb:not(img) { font-size: 4rem; }
       .modal-content { padding: 8px; }
       .close, .prev, .next { padding: 10px; font-size: 2.2rem; }
     }
@@ -180,6 +189,9 @@ try {
         <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-6">
           <button id="clearCacheBtn" class="mb-4 px-4 py-2 bg-primary text-white rounded hover:bg-blue-700 transition">Cache Temizle</button>
           <div id="path" class="mb-4"></div>
+          <div id="thumb-status" class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+            Görüntü Durumu: <span id="thumb-total">0</span> gösteriliyor — <span id="thumb-loaded">0</span> yüklendi — <span id="thumb-failed">0</span> yüklenemedi
+          </div>
           <div id="browser"></div>
         </div>
       </div>

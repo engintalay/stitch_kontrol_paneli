@@ -15,6 +15,12 @@ $db->exec('CREATE TABLE IF NOT EXISTS user_settings (
     setting_value TEXT NOT NULL,
     UNIQUE(user_id, setting_key)
 )');
+// Ensure a global settings table exists for system-wide values
+$db->exec('CREATE TABLE IF NOT EXISTS settings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  setting_key TEXT NOT NULL UNIQUE,
+  setting_value TEXT NOT NULL
+)');
 
 // Handle media_root setting
 $userId = $_SESSION['user_id'];
@@ -33,11 +39,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['media_root'])) {
         $message = 'Medya root dizini kaydedilemedi! Hata: ' . htmlspecialchars($errorInfo);
     }
 }
+
+  // Handle system theme setting (system-wide)
+  if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['system_theme'])) {
+    $theme = in_array($_POST['system_theme'], ['light', 'dark', 'auto']) ? $_POST['system_theme'] : 'auto';
+    $stmt = $db->prepare('INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value)
+                ON CONFLICT(setting_key) DO UPDATE SET setting_value = excluded.setting_value');
+    $stmt->bindValue(':key', 'system_theme', SQLITE3_TEXT);
+    $stmt->bindValue(':value', $theme, SQLITE3_TEXT);
+    if ($stmt->execute()) {
+      $message = 'Sistem teması kaydedildi: ' . htmlspecialchars($theme);
+    } else {
+      $message = 'Sistem teması kaydedilemedi: ' . htmlspecialchars($db->lastErrorMsg());
+    }
+  }
 $stmt = $db->prepare('SELECT setting_value FROM user_settings WHERE user_id = :user_id AND setting_key = :key');
 $stmt->bindValue(':user_id', $userId, SQLITE3_TEXT);
 $stmt->bindValue(':key', 'media_root', SQLITE3_TEXT);
 $result = $stmt->execute();
 $currentMediaRoot = ($row = $result->fetchArray(SQLITE3_ASSOC)) ? $row['setting_value'] : '';
+
+// Load current system theme
+$stmtTheme = $db->prepare('SELECT setting_value FROM settings WHERE setting_key = :key');
+$stmtTheme->bindValue(':key', 'system_theme', SQLITE3_TEXT);
+$resTheme = $stmtTheme->execute();
+$currentSystemTheme = ($r = $resTheme->fetchArray(SQLITE3_ASSOC)) ? $r['setting_value'] : 'auto';
 
 $title = 'Kontrol Paneli';
 $icon = 'settings';
@@ -112,6 +138,16 @@ $description = 'Sistem ayarlarını yönetin';
             <label for="media_root" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Medya Root Dizini</label>
             <input type="text" id="media_root" name="media_root" value="<?= htmlspecialchars($currentMediaRoot) ?>" class="form-input w-full" placeholder="/path/to/media" required />
             <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Kaydet</button>
+          </form>
+          <hr class="my-6" />
+          <form method="POST" class="space-y-4">
+            <label for="system_theme" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sistem Teması</label>
+            <select id="system_theme" name="system_theme" class="form-select w-full">
+              <option value="auto" <?= $currentSystemTheme === 'auto' ? 'selected' : '' ?>>Otomatik (tercih edilen renk düzenini kullan)</option>
+              <option value="light" <?= $currentSystemTheme === 'light' ? 'selected' : '' ?>>Açık</option>
+              <option value="dark" <?= $currentSystemTheme === 'dark' ? 'selected' : '' ?>>Koyu</option>
+            </select>
+            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Temayı Kaydet</button>
           </form>
         </div>
       </div>

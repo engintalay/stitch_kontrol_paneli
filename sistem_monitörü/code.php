@@ -69,13 +69,37 @@ function getTempAndFan() {
     return ['temp' => 0, 'fan' => 0];
 }
 
+// Disk kullanım bilgilerini al
+function getDiskUsage() {
+    $disks = [];
+    $output = shell_exec('df -h --output=target,size,used,avail,pcent 2>/dev/null | grep -E "^/"');
+    
+    if ($output) {
+        $lines = explode("\n", trim($output));
+        foreach ($lines as $line) {
+            if (preg_match('/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\d+)%/', $line, $matches)) {
+                $disks[] = [
+                    'mount' => $matches[1],
+                    'size' => $matches[2],
+                    'used' => $matches[3],
+                    'avail' => $matches[4],
+                    'percent' => intval($matches[5])
+                ];
+            }
+        }
+    }
+    
+    return $disks;
+}
+
 // AJAX request için JSON response
 if (isset($_GET['ajax'])) {
     header('Content-Type: application/json');
     echo json_encode([
         'cpu' => getCpuUsage(),
         'ram' => getMemoryUsage(),
-        'temp_fan' => getTempAndFan()
+        'temp_fan' => getTempAndFan(),
+        'disks' => getDiskUsage()
     ]);
     exit;
 }
@@ -223,7 +247,7 @@ try {
         $tempFan = getTempAndFan();
         ?>
 
-        <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-6">
+        <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">CPU Sıcaklık & Fan Hızı</h3>
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
@@ -237,6 +261,38 @@ try {
             </div>
             <div style="height: 400px;">
                 <canvas id="fanChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Disk Usage -->
+        <?php
+        $disks = getDiskUsage();
+        ?>
+
+        <div class="bg-white dark:bg-[#23272f] rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-3xl">hard_drive</span>
+                Disk Kullanımı
+            </h3>
+            <div id="disk-list" class="space-y-4">
+                <?php foreach ($disks as $disk): ?>
+                <div class="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="font-semibold text-gray-700 dark:text-gray-200"><?= htmlspecialchars($disk['mount']) ?></div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                            <?= htmlspecialchars($disk['used']) ?> / <?= htmlspecialchars($disk['size']) ?> 
+                            <span class="ml-2 font-bold <?= $disk['percent'] > 90 ? 'text-red-500' : ($disk['percent'] > 70 ? 'text-yellow-500' : 'text-green-500') ?>">
+                                <?= $disk['percent'] ?>%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                        <div class="h-3 rounded-full transition-all <?= $disk['percent'] > 90 ? 'bg-red-500' : ($disk['percent'] > 70 ? 'bg-yellow-500' : 'bg-green-500') ?>" 
+                             style="width: <?= min($disk['percent'], 100) ?>%"></div>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">Boş: <?= htmlspecialchars($disk['avail']) ?></div>
+                </div>
+                <?php endforeach; ?>
             </div>
         </div>
 
@@ -377,6 +433,32 @@ try {
               // Update temperature and fan values
               document.getElementById('temp-value').textContent = data.temp_fan.temp + '°C';
               document.getElementById('fan-value').textContent = data.temp_fan.fan + '%';
+
+              // Update disk usage
+              if (data.disks && data.disks.length > 0) {
+                const diskList = document.getElementById('disk-list');
+                let diskHtml = '';
+                data.disks.forEach(disk => {
+                  const colorClass = disk.percent > 90 ? 'bg-red-500' : (disk.percent > 70 ? 'bg-yellow-500' : 'bg-green-500');
+                  const textColorClass = disk.percent > 90 ? 'text-red-500' : (disk.percent > 70 ? 'text-yellow-500' : 'text-green-500');
+                  diskHtml += `
+                    <div class="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0">
+                      <div class="flex items-center justify-between mb-2">
+                        <div class="font-semibold text-gray-700 dark:text-gray-200">${disk.mount}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                          ${disk.used} / ${disk.size}
+                          <span class="ml-2 font-bold ${textColorClass}">${disk.percent}%</span>
+                        </div>
+                      </div>
+                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                        <div class="h-3 rounded-full transition-all ${colorClass}" style="width: ${Math.min(disk.percent, 100)}%"></div>
+                      </div>
+                      <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">Boş: ${disk.avail}</div>
+                    </div>
+                  `;
+                });
+                diskList.innerHTML = diskHtml;
+              }
             } catch (e) {
               console.error('Error updating stats:', e);
             }

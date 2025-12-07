@@ -1,3 +1,6 @@
 /medya
-*.db
+.db
 medya_tarayıcı/media_robot.txt
+modules.db
+modules.db
+users.db

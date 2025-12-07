@@ -25,8 +25,8 @@ function fetchItems(path = '', push = true) {
             }
             items = data.items;
             currentPath = data.current;
-                    // expose currentPath to global so page controls can read it
-                    window.currentPath = currentPath;
+            // expose currentPath to global so page controls can read it
+            window.currentPath = currentPath;
             renderBrowser();
             try {
                 const url = '?path=' + encodeURIComponent(currentPath);
@@ -35,7 +35,7 @@ function fetchItems(path = '', push = true) {
                 } else {
                     history.replaceState({ path: currentPath }, '', url);
                 }
-            } catch (e) {}
+            } catch (e) { }
         });
 }
 
@@ -70,6 +70,25 @@ function renderBrowser() {
     updateThumbStatus();
     // ensure global copy is kept in sync
     window.currentPath = currentPath;
+
+    // IntersectionObserver for strict lazy loading
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                    obs.unobserve(img);
+                }
+            }
+        });
+    }, {
+        root: null,
+        rootMargin: '200px', // Load images 200px before they enter viewport
+        threshold: 0.01
+    });
+
     items.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'item';
@@ -88,22 +107,28 @@ function renderBrowser() {
             thumb = document.createElement('img');
             let thumbPath = item.path;
             thumb.className = 'thumb';
-            thumb.loading = 'lazy';
+            // Removed native loading="lazy" in favor of observer
             // count and attach listeners before setting src
             thumbTotal++;
             thumb.addEventListener('load', () => { thumbLoaded++; updateThumbStatus(); });
             thumb.addEventListener('error', () => { thumbFailed++; updateThumbStatus(); });
-            thumb.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
+            // Use data-src for lazy loading
+            thumb.dataset.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
+            // Set a placeholder or keep transparent until loaded
+            thumb.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            observer.observe(thumb);
         } else if (item.type === 'video') {
             thumb = document.createElement('img');
             thumb.className = 'thumb';
-            thumb.loading = 'lazy';
             let thumbPath = item.path;
             // count and attach listeners before src
             thumbTotal++;
             thumb.addEventListener('load', () => { thumbLoaded++; updateThumbStatus(); });
             thumb.addEventListener('error', () => { thumbFailed++; updateThumbStatus(); });
-            thumb.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
+            thumb.dataset.src = 'album/thumb.php?path=' + encodeURIComponent(thumbPath) + '&size=250&format=webp';
+            thumb.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            observer.observe(thumb);
+
             overlay = document.createElement('div');
             overlay.className = 'play-overlay';
             overlay.innerText = '▶';
@@ -191,7 +216,7 @@ function updateThumbStatus() {
         } else {
             document.title = originalTitle;
         }
-    } catch (e) {}
+    } catch (e) { }
 }
 
 function goUp() {
@@ -217,7 +242,7 @@ function closeModal() {
                 vids[i].pause();
                 vids[i].removeAttribute('src');
                 vids[i].load();
-            } catch (e) {}
+            } catch (e) { }
         }
         modalMedia.innerHTML = '';
     }
@@ -280,7 +305,7 @@ window.onload = () => {
     const initial = getPathFromURL();
     fetchItems(initial, false);
     // ESC ile modal kapatma ve ok tuşları ile ileri/geri
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         const modal = document.getElementById('modal');
         if (modal && modal.style.display === 'flex') {
             if (e.key === 'Escape') {
@@ -295,7 +320,7 @@ window.onload = () => {
 };
 
 // Backspace ile üst dizine çıkma (modal açık değilse)
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     const modal = document.getElementById('modal');
     if (e.key === 'Backspace' && (!modal || modal.style.display !== 'flex')) {
         e.preventDefault();
@@ -304,7 +329,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Browser back/forward handling: navigate according to stored path
-window.addEventListener('popstate', function(e) {
+window.addEventListener('popstate', function (e) {
     const state = e.state;
     let path = '';
     if (state && typeof state.path === 'string') {

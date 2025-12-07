@@ -47,7 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } else {
         $_SESSION['login_attempts']++;
-        echo "Giriş başarısız! Bilgilerinizi kontrol edin.";
+        // Redirect back to login page with error indicator
+        header('Location: login.php?error=1');
+        exit;
     }
 } else {
     // Güvenli form örneği

@@ -53,6 +53,9 @@ function h($str) {
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display min-h-screen flex items-center justify-center">
   <div class="w-full max-w-md p-8 bg-white dark:bg-[#181c23] rounded-xl shadow-lg">
+    <?php if (isset($_GET['error'])): ?>
+      <div class="mb-4 text-red-600 text-sm">Giriş başarısız! Bilgilerinizi kontrol edin.</div>
+    <?php endif; ?>
     <div class="flex flex-col items-center mb-6">
       <span class="material-symbols-outlined text-primary text-5xl mb-2">lock</span>
       <h1 class="text-2xl font-bold text-primary mb-1">Giriş Yap</h1>

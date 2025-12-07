@@ -8,14 +8,14 @@ require_once __DIR__ . '/../auth_check.php';
 // Read system theme from settings.db
 $systemTheme = 'auto';
 try {
-  $__db_tmp = new SQLite3(__DIR__ . '/../settings.db');
-  $__stmt_theme = $__db_tmp->prepare('SELECT setting_value FROM settings WHERE setting_key = :key');
-  $__stmt_theme->bindValue(':key', 'system_theme', SQLITE3_TEXT);
-  $__res_theme = $__stmt_theme->execute();
-  $__row_theme = $__res_theme->fetchArray(SQLITE3_ASSOC);
-  if ($__row_theme && !empty($__row_theme['setting_value'])) {
-    $systemTheme = $__row_theme['setting_value'];
-  }
+    $__db_tmp = new SQLite3(__DIR__ . '/../settings.db');
+    $__stmt_theme = $__db_tmp->prepare('SELECT setting_value FROM settings WHERE setting_key = :key');
+    $__stmt_theme->bindValue(':key', 'system_theme', SQLITE3_TEXT);
+    $__res_theme = $__stmt_theme->execute();
+    $__row_theme = $__res_theme->fetchArray(SQLITE3_ASSOC);
+    if ($__row_theme && !empty($__row_theme['setting_value'])) {
+        $systemTheme = $__row_theme['setting_value'];
+    }
 } catch (Exception $e) {}
 ?>
 <!DOCTYPE html>

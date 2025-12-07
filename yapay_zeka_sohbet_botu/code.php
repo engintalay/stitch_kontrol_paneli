@@ -9,9 +9,22 @@ if (!isset($_SESSION['user_role'])) {
 $title = 'Yapay Zeka Sohbet Botu';
 $icon = 'smart_toy';
 $description = 'Yapay zeka ile sohbet edin';
+
+// Read system theme from settings.db
+$systemTheme = 'auto';
+try {
+    $__db_tmp = new SQLite3(__DIR__ . '/../settings.db');
+    $__stmt_theme = $__db_tmp->prepare('SELECT setting_value FROM settings WHERE setting_key = :key');
+    $__stmt_theme->bindValue(':key', 'system_theme', SQLITE3_TEXT);
+    $__res_theme = $__stmt_theme->execute();
+    $__row_theme = $__res_theme->fetchArray(SQLITE3_ASSOC);
+    if ($__row_theme && !empty($__row_theme['setting_value'])) {
+        $systemTheme = $__row_theme['setting_value'];
+    }
+} catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
-<html class="dark" lang="tr">
+<html <?= $systemTheme === 'dark' ? 'class="dark"' : '' ?> lang="tr">
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -44,6 +57,18 @@ $description = 'Yapay zeka ile sohbet edin';
       },
     }
   </script>
+  <?php if ($systemTheme === 'auto'): ?>
+  <script>
+    // Apply dark class if user's OS prefers dark mode
+    (function(){
+      try {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <?php endif; ?>
   <style>
     .material-symbols-outlined {
       font-variation-settings:

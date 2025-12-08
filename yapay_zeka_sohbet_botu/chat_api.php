@@ -156,6 +156,50 @@ if ($action === 'get_chat') {
     jsonOut(['ok' => true, 'chat' => $chat, 'messages' => $messages]);
 }
 
+if ($action === 'list_models') {
+    $sDb = new SQLite3($settingsDbPath);
+    $apiKey = getSetting($sDb, $userId, 'openai_api_key', '');
+    $baseUrl = getSetting($sDb, $userId, 'openai_base_url', 'https://api.openai.com/v1');
+    
+    $baseUrl = rtrim($baseUrl, '/');
+    $apiUrl = $baseUrl . '/models';
+    
+    $ch = curl_init($apiUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $apiKey
+    ]);
+    
+    // Timeout for checking models should be short
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    if ($err) {
+        jsonOut(['ok' => false, 'error' => 'Bağlantı hatası: ' . $err]);
+    }
+    
+    $json = json_decode($response, true);
+    if ($httpCode !== 200) {
+        $msg = $json['error']['message'] ?? 'Sunucu hatası (' . $httpCode . ')';
+        jsonOut(['ok' => false, 'error' => $msg]);
+    }
+
+    // OpenAI format: { object: "list", data: [ {id: "gpt-4", ...}, ... ] }
+    $models = [];
+    if (isset($json['data']) && is_array($json['data'])) {
+        foreach ($json['data'] as $m) {
+            if (isset($m['id'])) $models[] = $m['id'];
+        }
+    }
+    
+    jsonOut(['ok' => true, 'models' => $models]);
+}
+
 if ($action === 'delete_chat') {
     $chatId = intval($_POST['id'] ?? 0);
     if (!$chatId) error('ID gerekli.');

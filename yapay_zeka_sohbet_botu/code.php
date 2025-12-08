@@ -174,19 +174,46 @@ try {
   <!-- API Key Modal -->
   <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
     <div class="bg-white dark:bg-[#111318] p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
-      <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Yapay Zeka Ayarları</h2>
+      <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">Yapay Zeka Ayarları</h2>
+          <div class="flex items-center gap-2" title="Sunucu Bağlantı Durumu">
+              <span class="text-xs text-gray-500" id="statusText">Bağlantı Yok</span>
+              <div id="serverStatusIndicator" class="w-3 h-3 rounded-full bg-gray-400 transition-colors"></div>
+          </div>
+      </div>
       <p class="text-sm text-gray-500 mb-4">OpenAI veya uyumlu bir sunucu (LM Studio vb.) ayarlarını giriniz.</p>
       
       <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Sunucu Adresi (Base URL)</label>
-            <input type="text" id="baseUrlInput" class="form-input w-full rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#282e39] text-sm" placeholder="https://api.openai.com/v1" />
+            <div class="flex gap-2">
+                <input type="text" id="baseUrlInput" onblur="checkConnection()" class="form-input flex-1 rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#282e39] text-sm" placeholder="https://api.openai.com/v1" />
+                <button onclick="checkConnection()" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600" title="Bağlantıyı Kontrol Et">
+                    <span class="material-symbols-outlined text-sm">sync</span>
+                </button>
+            </div>
             <p class="text-xs text-gray-400 mt-1">LM Studio için genelde: http://localhost:1234/v1</p>
           </div>
           
           <div>
-            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Model Adı</label>
-            <input type="text" id="modelInput" class="form-input w-full rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#282e39] text-sm" placeholder="gpt-4o" />
+            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Model Seçimi</label>
+            <div class="flex gap-2">
+                <div class="relative flex-1">
+                     <select id="modelSelect" class="form-select w-full rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#282e39] text-sm appearance-none">
+                         <option value="gpt-4o">gpt-4o</option>
+                         <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                     </select>
+                     <!-- Fallback for custom model name if not in list -->
+                     <input type="text" id="modelInputCustom" class="hidden form-input w-full rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#282e39] text-sm mt-1" placeholder="Manuel model adı girin..." />
+                </div>
+                <button onclick="fetchModels()" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600" title="Modelleri Yenile">
+                    <span class="material-symbols-outlined text-sm">refresh</span>
+                </button>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+                <input type="checkbox" id="manualModelCheckbox" class="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" onchange="toggleManualModel()">
+                <label for="manualModelCheckbox" class="text-xs text-gray-500 cursor-pointer">Manuel model adı gir</label>
+            </div>
           </div>
 
           <div>
@@ -206,7 +233,6 @@ try {
   <script>
     let activeChatId = null;
 
-    // Toast Notification helper
     function showToast(msg, type='info') {
         const div = document.createElement('div');
         div.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'}`;
@@ -214,23 +240,130 @@ try {
         document.body.appendChild(div);
         setTimeout(() => div.remove(), 3000);
     }
+    
+    function toggleManualModel() {
+        const isManual = document.getElementById('manualModelCheckbox').checked;
+        const sel = document.getElementById('modelSelect');
+        const inp = document.getElementById('modelInputCustom');
+        
+        if (isManual) {
+            sel.classList.add('hidden');
+            inp.classList.remove('hidden');
+            inp.value = sel.value;
+        } else {
+            sel.classList.remove('hidden');
+            inp.classList.add('hidden');
+            // Add custom value to select if needed?
+        }
+    }
 
-    // 1. Check/Load Settings on Load
+    async function checkConnection() {
+        const statusInd = document.getElementById('serverStatusIndicator');
+        const statusTxt = document.getElementById('statusText');
+        
+        statusInd.className = "w-3 h-3 rounded-full bg-yellow-400 animate-pulse";
+        statusTxt.textContent = "Kontrol ediliyor...";
+        
+        // We need to temporarily save settings or pass them in query? 
+        // The list_models action reads from DB. So we must save API Key/BaseURL first?
+        // Actually, let's just use what's in input effectively.
+        // Wait, list_models reads from DB (user_settings). 
+        // So connection check effectively requires saving first? That's annoying for "check before save".
+        // Let's assume we save silently or we just check if current DB settings allow connection.
+        // Since we changed UI to Inputs, maybe we should allow passing params to `list_models` via POST for testing?
+        // Or just save them temporarily. Let's try to fetch models. If it works, connection is OK.
+        
+        // Ideally, checkConnection should check the *Input* values, but our backend list_models reads from DB.
+        // Let's first save the current inputs to DB (maybe as a "test" save or just real save).
+        // Let's do a quiet save then check.
+        
+        await saveSettings(true); // Quiet save
+        
+        try {
+            const res = await fetch('chat_api.php?action=list_models');
+            const data = await res.json();
+            
+            if (data.ok) {
+                statusInd.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]";
+                statusTxt.textContent = "Bağlı";
+                statusTxt.className = "text-xs text-green-600 font-bold";
+                populateModelSelect(data.models);
+                return true;
+            } else {
+                throw new Error(data.error);
+            }
+        } catch(e) {
+            statusInd.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]";
+            statusTxt.textContent = "Hata";
+            statusTxt.className = "text-xs text-red-500 font-bold";
+            console.error(e);
+            return false;
+        }
+    }
+    
+    function populateModelSelect(models) {
+        const sel = document.getElementById('modelSelect');
+        const currentVal = sel.value;
+        sel.innerHTML = '';
+        
+        if (!models || models.length === 0) {
+            const opt = document.createElement('option');
+            opt.text = "Model bulunamadı";
+            sel.add(opt);
+            return;
+        }
+        
+        models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.text = m;
+            sel.add(opt);
+        });
+        
+        // Restore value if exists, else first
+        if (models.includes(currentVal)) {
+            sel.value = currentVal;
+        }
+    }
+
+    async function fetchModels() {
+        const ok = await checkConnection();
+        if (ok) showToast('Model listesi güncellendi.');
+        else showToast('Modeller alınamadı, bağlantıyı kontrol edin.', 'error');
+    }
+
     async function checkSettings() {
         try {
             const res = await fetch('chat_api.php?action=get_settings');
             const data = await res.json();
             if (data.ok) {
                 document.getElementById('baseUrlInput').value = data.base_url || 'https://api.openai.com/v1';
-                document.getElementById('modelInput').value = data.model || 'gpt-4o';
                 document.getElementById('apiKeyInput').value = data.api_key || '';
                 
-                // If no key and standard URL, likely first time, stick with modal closed or open if strict.
-                // Or if it's completely empty? Let's not force open unless user wants to chat.
-                // Actually, let's force open if NO key is present, assuming typical use.
-                // But for local LLM key might be dummy.
+                // Set model
+                const savedModel = data.model || 'gpt-4o';
+                
+                // If we haven't fetched list yet, put this model as option
+                const sel = document.getElementById('modelSelect');
+                let found = false;
+                for(let i=0; i<sel.options.length; i++) {
+                    if(sel.options[i].value === savedModel) found = true;
+                }
+                if (!found) {
+                     const opt = document.createElement('option');
+                     opt.value = savedModel;
+                     opt.text = savedModel;
+                     sel.add(opt);
+                }
+                sel.value = savedModel;
+                
                 if (!data.has_key) { 
-                    // Optional: openSettingsModal(); 
+                    // Optional open
+                } else {
+                    // Try to check connection on load if key exists
+                    // checkConnection(); // Maybe too aggressive on load? Let's just check silently?
+                    // User asked for a light. Let's do it.
+                    checkConnection();
                 }
             }
         } catch(e) {}
@@ -240,13 +373,18 @@ try {
         document.getElementById('settingsModal').classList.remove('hidden');
     }
 
-    async function saveSettings() {
+    async function saveSettings(quiet = false) {
         const k = document.getElementById('apiKeyInput').value.trim();
         const b = document.getElementById('baseUrlInput').value.trim();
-        const m = document.getElementById('modelInput').value.trim();
         
-        // Validation could be stricter, but lenient for now
-        if (!b) return showToast('Sunucu adresi gereklidir.', 'error');
+        let m = "";
+        if (document.getElementById('manualModelCheckbox').checked) {
+            m = document.getElementById('modelInputCustom').value.trim();
+        } else {
+            m = document.getElementById('modelSelect').value;
+        }
+        
+        if (!b) return quiet ? false : showToast('Sunucu adresi gereklidir.', 'error');
         
         const fd = new FormData();
         fd.append('action', 'save_settings');
@@ -258,12 +396,19 @@ try {
             const res = await fetch('chat_api.php', { method: 'POST', body: fd });
             const d = await res.json();
             if (d.ok) {
-                showToast('Ayarlar kaydedildi.');
-                document.getElementById('settingsModal').classList.add('hidden');
+                if (!quiet) {
+                    showToast('Ayarlar kaydedildi.');
+                    document.getElementById('settingsModal').classList.add('hidden');
+                }
+                return true;
             } else {
-                showToast(d.error || 'Hata', 'error');
+                if (!quiet) showToast(d.error || 'Hata', 'error');
+                return false;
             }
-        } catch(e) { showToast('Bağlantı hatası', 'error'); }
+        } catch(e) { 
+            if (!quiet) showToast('Bağlantı hatası', 'error'); 
+            return false;
+        }
     }
 
     // 2. Load Chat History

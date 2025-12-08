@@ -80,120 +80,404 @@ try {
   </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
-  <div class="flex h-screen w-full">
-    <!-- SideNavBar -->
-    <aside class="flex w-64 flex-col border-r border-gray-200 dark:border-gray-800 bg-background-light dark:bg-[#111318] p-4">
-      <div class="flex flex-col gap-4">
-        <div class="flex items-center gap-3">
-          <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" 
-               data-alt="AI Bot logo" 
-               style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBovY124WQr5pvSuwPlMDT_3dqgf_WH-6MMvsSMBxo5-30JlBS3h3ORtQ_0h9Co4ZvWNr1O4clfQ_uXRdxfVHlsswV-mjUp6tbdvoq1iKoyghN9-0JLxgbHpp2OcnlECnjohnpEJU99z7T_49SzkpIb1lU4JkBM_1AjUs12YV9x_rs1y_UHsuzKNTXlirlWq72P2lfxalfMnw4lj-_gzR0LpsN2qdPGB8mfF2mteudCVHl2cURzradG05Cgz-rSGlnuSbtcEKvrVaU");'>
-          </div>
-          <div class="flex flex-col">
-            <h1 class="text-base font-bold text-gray-900 dark:text-white"><?= htmlspecialchars($title) ?></h1>
-            <p class="text-sm font-normal text-gray-500 dark:text-[#9da6b9]">Sohbet Geçmişi</p>
-          </div>
-        </div>
+  <div class="flex flex-col h-screen w-full">
+    <!-- Top Header (Consistent with other modules) -->
+    <header class="flex items-center justify-between p-4 bg-white/80 dark:bg-[#181c23] shadow z-10">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-3xl"><?= $icon ?></span>
+        <span class="font-bold text-xl text-primary"><?= htmlspecialchars($title) ?></span>
       </div>
-      <div class="flex flex-1 flex-col justify-between mt-6">
-        <nav class="flex flex-col gap-2">
-          <a class="flex items-center gap-3 rounded-lg bg-primary/10 dark:bg-[#282e39] px-3 py-2" href="#">
-            <span class="material-symbols-outlined text-primary dark:text-white text-base">chat</span>
-            <p class="text-sm font-medium text-primary dark:text-white">Python Fonksiyonları</p>
-          </a>
-          <a class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800/50" href="#">
-            <span class="material-symbols-outlined text-gray-500 dark:text-white text-base">chat</span>
-            <p class="text-sm font-medium text-gray-700 dark:text-white">Haftasonu Gezi Planı</p>
-          </a>
-          <a class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800/50" href="#">
-            <span class="material-symbols-outlined text-gray-500 dark:text-white text-base">chat</span>
-            <p class="text-sm font-medium text-gray-700 dark:text-white">Yeni bir tarif</p>
-          </a>
+      <div class="flex items-center gap-4">
+        <!-- API Key Button in Header for visibility -->
+        <button onclick="openSettingsModal()" class="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition lg:hidden">
+            <span class="material-symbols-outlined text-gray-600 dark:text-gray-300">key</span>
+        </button>  
+        <a href="../home.php" class="hidden md:inline-flex px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
+        <a href="../logout.php" class="hidden md:inline-flex px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Çıkış</a>
+        <!-- Mobile/Compact Menu -->
+        <a href="../home.php" class="md:hidden text-primary"><span class="material-symbols-outlined">home</span></a>
+        <a href="../logout.php" class="md:hidden text-red-600"><span class="material-symbols-outlined">logout</span></a>
+      </div>
+    </header>
+
+    <!-- Main Content Area (Sidebar + Chat) -->
+    <div class="flex flex-1 overflow-hidden relative">
+      <!-- SideNavBar -->
+      <aside class="flex w-64 flex-col border-r border-gray-200 dark:border-gray-800 bg-background-light dark:bg-[#111318] p-4 hidden md:flex">
+        <div class="flex flex-col gap-2 mb-4">
+             <button onclick="createNewChat()" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition shadow">
+               <span class="material-symbols-outlined mr-2 text-lg">add</span>
+               <span class="truncate">Yeni Sohbet</span>
+             </button>
+             <button onclick="openSettingsModal()" class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 w-full text-left border border-gray-200 dark:border-gray-800">
+               <span class="material-symbols-outlined text-gray-500 dark:text-white text-base">key</span>
+               <p class="text-sm font-medium text-gray-700 dark:text-white">API Ayarları</p>
+             </button>
+        </div>
+        
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Geçmiş Sohbetler</div>
+        <nav id="chatParamsList" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-1">
+          <!-- Chat list loaded via JS -->
+          <div class="text-center text-sm text-gray-500 mt-4">Yükleniyor...</div>
         </nav>
-        <div class="flex flex-col gap-2">
-          <button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90">
-            <span class="truncate">Yeni Sohbet</span>
+        
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 flex flex-col gap-2">
+             <a class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800/50" href="../admin_panel.php">
+                <span class="material-symbols-outlined text-gray-500 dark:text-white text-base">settings</span>
+                <p class="text-sm font-medium text-gray-700 dark:text-white">Admin Paneli</p>
+              </a>
+        </div>
+      </aside>
+
+      <!-- Main Chat Area -->
+      <main class="flex flex-1 flex-col relative bg-white dark:bg-[#181c23]">
+        <header class="flex h-16 items-center border-b border-gray-200 dark:border-gray-800 px-6 shrink-0 z-0">
+          <!-- Mobile Toggle -->
+          <button class="md:hidden mr-4" onclick="document.querySelector('aside').classList.toggle('hidden'); document.querySelector('aside').classList.toggle('absolute'); document.querySelector('aside').classList.toggle('z-50'); document.querySelector('aside').classList.toggle('h-full');">
+             <span class="material-symbols-outlined">menu</span>
           </button>
-          <a class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800/50" href="../admin_panel.php">
-            <span class="material-symbols-outlined text-gray-500 dark:text-white text-base">settings</span>
-            <p class="text-sm font-medium text-gray-700 dark:text-white">Ayarlar (Admin)</p>
-          </a>
-          <a class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800/50" href="../home.php">
-            <span class="material-symbols-outlined text-gray-500 dark:text-white text-base">home</span>
-            <p class="text-sm font-medium text-gray-700 dark:text-white">Ana Sayfa</p>
-          </a>
-          <a class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600" href="../logout.php">
-             <span class="material-symbols-outlined text-base">logout</span>
-             <p class="text-sm font-medium">Çıkış</p>
-          </a>
-        </div>
-      </div>
-    </aside>
-    <!-- Main Chat Area -->
-    <main class="flex flex-1 flex-col">
-      <header class="flex h-16 items-center border-b border-gray-200 dark:border-gray-800 px-6">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Python Fonksiyonları</h2>
-        <div class="ml-auto flex items-center gap-4">
-          <button class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
-            <span class="material-symbols-outlined">more_horiz</span>
-          </button>
-        </div>
-      </header>
-      <div class="flex flex-1 flex-col overflow-y-auto p-6">
-        <div class="flex-1 space-y-6">
-          <!-- User Message -->
-          <div class="flex items-start gap-4 justify-end">
-            <div class="flex flex-col items-end gap-2 rounded-xl rounded-br-none bg-primary/10 dark:bg-primary/20 p-4 max-w-xl">
-              <div class="flex items-center gap-2">
-                <p class="text-sm font-bold text-gray-900 dark:text-white">Siz</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">10:40</p>
-              </div>
-              <p class="text-base font-normal leading-relaxed text-gray-800 dark:text-gray-200">Bana Python'da bir fonksiyonun nasıl tanımlandığını gösterebilir misin?</p>
-            </div>
-            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" 
-                 data-alt="User avatar" 
-                 style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAE3n2lFPFJl1o4E0DoxazyKuzW2PUen7MuLYASsGUMZrN0lvsIQlx7WSiMsWgXiLlIXfDreyNL01VIAJLS05M2HgbYL6D-thLZG24UZuzIqxZnQNk--Wx2ps8GUT3IKWnZYPlOegUcS8oFZ0Fnr28oR4Efw-dtnPtQBzBPryiuwMrvEUJs7Ec1_Vo_WsOqdiP4vTh0T-DDHF9lT2aun5jatpTDm6Y4oVj04lUUiHa60Iszjvj9xgUv2aOHrbVcwdABsYVFGa9Tmt0");'>
-            </div>
+          
+          <h2 id="currentChatTitle" class="text-lg font-semibold text-gray-900 dark:text-white">Yeni Sohbet</h2>
+          <div class="ml-auto flex items-center gap-4">
+             <button onclick="deleteCurrentChat()" title="Sohbeti Sil" class="text-gray-400 hover:text-red-500 transition">
+               <span class="material-symbols-outlined">delete</span>
+             </button>
           </div>
-          <!-- AI Message -->
-          <div class="flex items-start gap-4">
-            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" 
-                 data-alt="AI Bot avatar" 
-                 style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCom8dSzWKTxBKwGDyDRaVsy8xUe_kWOmFlqOixh3k9GFWda03ICh42LeGyniNblp6I11RQCCpiMCSzNeDNwHPFP95vwQYLuMBNv-SvKtzp-S1z_z6FdxeYL7LQuKSrfNJuhNQ8x3eu965A9e5fytJxKPMuVAKfwPvK7L3CQCV0sHU2hCAd24NU5t48NJAseUMP25cKhZbU616qR5OALiC7_Z6FmaNDFYmQ1Z5ajuCnOWIZXDsa61NgElk_uTZM1P1QdkV3-ERIVCs");'>
-            </div>
-            <div class="flex flex-col gap-2 rounded-xl rounded-bl-none bg-gray-100 dark:bg-[#111318] p-4 max-w-xl">
-              <div class="flex items-center gap-2">
-                <p class="text-sm font-bold text-gray-900 dark:text-white">Yapay Zeka</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">10:41</p>
+        </header>
+        
+        <!-- Chat Messages -->
+        <div id="messagesContainer" class="flex flex-1 flex-col overflow-y-auto p-6 space-y-6 scroll-smooth">
+           <div class="flex flex-col items-center justify-center h-full text-gray-500">
+             <span class="material-symbols-outlined text-4xl mb-2">chat_bubble_outline</span>
+             <p>Bir sohbet seçin veya yeni bir sohbet başlatın.</p>
+           </div>
+        </div>
+        
+        <!-- Composer -->
+        <div class="border-t border-gray-200 dark:border-gray-800 p-4 shrink-0">
+          <div class="relative max-w-4xl mx-auto">
+            <form id="chatForm" onsubmit="event.preventDefault(); sendMessage();">
+              <textarea id="messageInput" class="form-input w-full resize-none rounded-xl border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-[#282e39] text-gray-800 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-primary focus:ring-primary py-3 pl-4 pr-16 shadow-sm" placeholder="Bir mesaj gönder..." rows="1" onkeydown="if(event.key === 'Enter' && !event.shiftKey){ event.preventDefault(); sendMessage(); }"></textarea>
+              <div class="absolute bottom-2 right-2 flex items-center gap-2">
+                <button type="submit" class="flex cursor-pointer items-center justify-center rounded-lg bg-primary h-9 w-9 text-white hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed" id="sendBtn">
+                  <span class="material-symbols-outlined text-base">send</span>
+                </button>
               </div>
-              <p class="text-base font-normal leading-relaxed text-gray-800 dark:text-gray-200">Elbette, Python'da bir fonksiyon şu şekilde tanımlanır: <code class="bg-gray-200 dark:bg-gray-900 text-primary dark:text-primary-400 rounded-md px-1.5 py-0.5 font-mono text-sm">def fonksiyon_adi(parametreler):</code></p>
-              <div class="flex items-center gap-2 self-end text-gray-500 dark:text-gray-400 mt-2">
-                <button class="hover:text-primary"><span class="material-symbols-outlined text-sm">content_copy</span></button>
-                <button class="hover:text-primary"><span class="material-symbols-outlined text-sm">thumb_up</span></button>
-                <button class="hover:text-primary"><span class="material-symbols-outlined text-sm">thumb_down</span></button>
-              </div>
-            </div>
+            </form>
+            <div class="text-center text-xs text-gray-400 mt-2">Yapay zeka hatalı bilgi verebilir. Önemli konularda kontrol ediniz.</div>
           </div>
         </div>
-      </div>
-      <!-- Composer -->
-      <div class="border-t border-gray-200 dark:border-gray-800 p-4">
-        <div class="relative">
-          <textarea class="form-input w-full resize-none rounded-xl border-gray-300 bg-gray-100 dark:border-gray-700 dark:bg-[#282e39] text-gray-800 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-primary focus:ring-primary py-3 pl-4 pr-28" placeholder="Bir mesaj gönder..." rows="1"></textarea>
-          <div class="absolute bottom-2 right-2 flex items-center gap-2">
-            <button class="flex items-center justify-center p-2 text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary">
-              <span class="material-symbols-outlined">add_circle</span>
-            </button>
-            <button class="flex items-center justify-center p-2 text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary">
-              <span class="material-symbols-outlined">mic</span>
-            </button>
-            <button class="flex cursor-pointer items-center justify-center rounded-lg bg-primary h-9 w-9 text-white hover:bg-primary/90">
-              <span class="material-symbols-outlined text-base">send</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
+  
+  <!-- API Key Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white dark:bg-[#111318] p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
+      <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Yapay Zeka Ayarları</h2>
+      <p class="text-sm text-gray-500 mb-4">OpenAI veya uyumlu bir sunucu (LM Studio vb.) ayarlarını giriniz.</p>
+      
+      <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Sunucu Adresi (Base URL)</label>
+            <input type="text" id="baseUrlInput" class="form-input w-full rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#282e39] text-sm" placeholder="https://api.openai.com/v1" />
+            <p class="text-xs text-gray-400 mt-1">LM Studio için genelde: http://localhost:1234/v1</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Model Adı</label>
+            <input type="text" id="modelInput" class="form-input w-full rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#282e39] text-sm" placeholder="gpt-4o" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">API Anahtarı</label>
+            <input type="password" id="apiKeyInput" class="form-input w-full rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#282e39] text-sm" placeholder="sk-..." />
+            <p class="text-xs text-gray-400 mt-1">Yerel sunucular için rastgele bir değer girilebilir.</p>
+          </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-6">
+        <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">İptal</button>
+        <button onclick="saveSettings()" class="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeChatId = null;
+
+    // Toast Notification helper
+    function showToast(msg, type='info') {
+        const div = document.createElement('div');
+        div.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'}`;
+        div.innerText = msg;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 3000);
+    }
+
+    // 1. Check/Load Settings on Load
+    async function checkSettings() {
+        try {
+            const res = await fetch('chat_api.php?action=get_settings');
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('baseUrlInput').value = data.base_url || 'https://api.openai.com/v1';
+                document.getElementById('modelInput').value = data.model || 'gpt-4o';
+                document.getElementById('apiKeyInput').value = data.api_key || '';
+                
+                // If no key and standard URL, likely first time, stick with modal closed or open if strict.
+                // Or if it's completely empty? Let's not force open unless user wants to chat.
+                // Actually, let's force open if NO key is present, assuming typical use.
+                // But for local LLM key might be dummy.
+                if (!data.has_key) { 
+                    // Optional: openSettingsModal(); 
+                }
+            }
+        } catch(e) {}
+    }
+
+    function openSettingsModal() {
+        document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    async function saveSettings() {
+        const k = document.getElementById('apiKeyInput').value.trim();
+        const b = document.getElementById('baseUrlInput').value.trim();
+        const m = document.getElementById('modelInput').value.trim();
+        
+        // Validation could be stricter, but lenient for now
+        if (!b) return showToast('Sunucu adresi gereklidir.', 'error');
+        
+        const fd = new FormData();
+        fd.append('action', 'save_settings');
+        fd.append('api_key', k);
+        fd.append('base_url', b);
+        fd.append('model', m);
+        
+        try {
+            const res = await fetch('chat_api.php', { method: 'POST', body: fd });
+            const d = await res.json();
+            if (d.ok) {
+                showToast('Ayarlar kaydedildi.');
+                document.getElementById('settingsModal').classList.add('hidden');
+            } else {
+                showToast(d.error || 'Hata', 'error');
+            }
+        } catch(e) { showToast('Bağlantı hatası', 'error'); }
+    }
+
+    // 2. Load Chat History
+    async function loadChatList() {
+        const listContainer = document.getElementById('chatParamsList');
+        // listContainer.innerHTML = '<div class="text-center mt-4">...</div>';
+        try {
+            const res = await fetch('chat_api.php?action=list_chats');
+            if (!res.ok) throw new Error('Sunucu hatası: ' + res.status);
+            
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch(e) {
+                console.error('JSON Parse Error:', text);
+                throw new Error('Geçersiz sunucu yanıtı');
+            }
+
+            if (data.ok) {
+                renderChatList(data.chats);
+                // If no active chat but chats exist, select the first one
+                if (!activeChatId && data.chats.length > 0) {
+                    loadChat(data.chats[0].id);
+                } else if (data.chats.length === 0) {
+                    createNewChat();
+                }
+            } else {
+                showToast(data.error || 'Liste yüklenemedi', 'error');
+            }
+        } catch(e) { 
+            console.error(e); 
+            document.getElementById('chatParamsList').innerHTML = '<div class="text-center text-red-500 text-sm mt-4">Hata: '+e.message+'</div>';
+        }
+    }
+
+    function renderChatList(chats) {
+        const list = document.getElementById('chatParamsList');
+        list.innerHTML = '';
+        chats.forEach(c => {
+            const btn = document.createElement('button');
+            const isActive = (c.id == activeChatId);
+            btn.className = `flex items-center gap-3 rounded-lg px-3 py-2 w-full text-left transition ${isActive ? 'bg-primary/10 dark:bg-[#282e39] text-primary dark:text-white font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300'}`;
+            btn.onclick = () => loadChat(c.id);
+            btn.innerHTML = `
+                <span class="material-symbols-outlined text-base">chat_bubble_outline</span>
+                <p class="text-sm truncate flex-1">${c.title || 'Yeni Sohbet'}</p>
+            `;
+            list.appendChild(btn);
+        });
+    }
+
+    async function createNewChat() {
+        try {
+            const res = await fetch('chat_api.php?action=new_chat');
+            const data = await res.json();
+            if (data.ok) {
+                await loadChatList();
+                loadChat(data.id);
+            }
+        } catch(e) { showToast('Hata', 'error'); }
+    }
+    
+    async function deleteCurrentChat() {
+        if (!activeChatId || !confirm('Bu sohbeti silmek istediğinize emin misiniz?')) return;
+        try {
+            const fd = new FormData();
+            fd.append('action', 'delete_chat');
+            fd.append('id', activeChatId);
+            const res = await fetch('chat_api.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.ok) {
+                activeChatId = null;
+                document.getElementById('messagesContainer').innerHTML = '';
+                loadChatList();
+            }
+        } catch(e) {}
+    }
+
+    async function loadChat(id) {
+        activeChatId = id;
+        loadChatList(); 
+        
+        const container = document.getElementById('messagesContainer');
+        container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500"><span class="animate-spin material-symbols-outlined">progress_activity</span></div>';
+        
+        try {
+            const res = await fetch('chat_api.php?action=get_chat&id=' + id);
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('currentChatTitle').innerText = data.chat.title || 'Sohbet';
+                renderMessages(data.messages);
+            }
+        } catch(e) {}
+    }
+
+    function renderMessages(msgs) {
+        const box = document.getElementById('messagesContainer');
+        box.innerHTML = '';
+        if (msgs.length === 0) {
+            box.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-gray-500 opacity-50"><p>Henüz mesaj yok.</p></div>';
+            return;
+        }
+        msgs.forEach(m => appendMessage(m.role, m.content));
+        scrollToBottom();
+    }
+
+    function appendMessage(role, content) {
+        const box = document.getElementById('messagesContainer');
+        if (box.innerText.includes('Henüz mesaj yok')) box.innerHTML = '';
+        
+        const isUser = (role === 'user');
+        const div = document.createElement('div');
+        div.className = `flex items-start gap-4 ${isUser ? 'justify-end' : ''}`;
+        
+        const avatarUrl = isUser 
+            ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuAE3n2lFPFJl1o4E0DoxazyKuzW2PUen7MuLYASsGUMZrN0lvsIQlx7WSiMsWgXiLlIXfDreyNL01VIAJLS05M2HgbYL6D-thLZG24UZuzIqxZnQNk--Wx2ps8GUT3IKWnZYPlOegUcS8oFZ0Fnr28oR4Efw-dtnPtQBzBPryiuwMrvEUJs7Ec1_Vo_WsOqdiP4vTh0T-DDHF9lT2aun5jatpTDm6Y4oVj04lUUiHa60Iszjvj9xgUv2aOHrbVcwdABsYVFGa9Tmt0'
+            : 'https://lh3.googleusercontent.com/aida-public/AB6AXuCom8dSzWKTxBKwGDyDRaVsy8xUe_kWOmFlqOixh3k9GFWda03ICh42LeGyniNblp6I11RQCCpiMCSzNeDNwHPFP95vwQYLuMBNv-SvKtzp-S1z_z6FdxeYL7LQuKSrfNJuhNQ8x3eu965A9e5fytJxKPMuVAKfwPvK7L3CQCV0sHU2hCAd24NU5t48NJAseUMP25cKhZbU616qR5OALiC7_Z6FmaNDFYmQ1Z5ajuCnOWIZXDsa61NgElk_uTZM1P1QdkV3-ERIVCs';
+            
+        const bubbleClass = isUser 
+            ? 'rounded-xl rounded-br-none bg-primary text-white p-4 max-w-xl shadow-md'
+            : 'rounded-xl rounded-bl-none bg-white dark:bg-[#23272f] border border-gray-100 dark:border-gray-700 p-4 max-w-xl shadow-sm';
+            
+        const name = isUser ? 'Siz' : 'Yapay Zeka';
+        const nameClass = isUser ? 'text-blue-100' : 'text-gray-900 dark:text-white';
+        const textClass = isUser ? 'text-white' : 'text-gray-800 dark:text-gray-200';
+        
+        let html = `
+            ${isUser ? '' : `<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 shadow-sm" style='background-image: url("${avatarUrl}");'></div>`}
+            <div class="flex flex-col gap-1 ${bubbleClass}">
+                <div class="text-xs font-bold ${nameClass} opacity-80">${name}</div>
+                <div class="text-base font-normal leading-relaxed ${textClass} whitespace-pre-wrap">${content ? escapeHtml(content) : '<span class="animate-pulse">...</span>'}</div>
+            </div>
+            ${isUser ? `<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 shadow-sm" style='background-image: url("${avatarUrl}");'></div>` : ''}
+        `;
+        div.innerHTML = html;
+        box.appendChild(div);
+        scrollToBottom();
+        return div;
+    }
+
+    async function sendMessage() {
+        if (!activeChatId) return showToast('Önce bir sohbet seçin veya oluşturun.', 'info');
+        const input = document.getElementById('messageInput');
+        const txt = input.value.trim();
+        if (!txt) return;
+        
+        input.value = '';
+        input.style.height = 'auto'; 
+        
+        appendMessage('user', txt);
+        
+        const waitingDiv = appendMessage('assistant', '');
+        const contentDiv = waitingDiv.querySelector('.whitespace-pre-wrap');
+        
+        const btn = document.getElementById('sendBtn');
+        btn.disabled = true;
+
+        try {
+            const fd = new FormData();
+            fd.append('action', 'send_message');
+            fd.append('chat_id', activeChatId);
+            fd.append('message', txt);
+            
+            const res = await fetch('chat_api.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            
+            if (data.ok) {
+                contentDiv.innerHTML = escapeHtml(data.response);
+                contentDiv.classList.remove('animate-pulse');
+                loadChatList(); 
+            } else {
+                contentDiv.innerText = "Hata: " + (data.error || 'Bilinmeyen hata');
+                contentDiv.className += " text-red-500";
+            }
+        } catch(e) {
+            contentDiv.innerText = "Bağlantı hatası.";
+            contentDiv.className += " text-red-500";
+        }
+        btn.disabled = false;
+        scrollToBottom();
+        // Focus input
+        document.getElementById('messageInput').focus();
+    }
+
+    function scrollToBottom() {
+        const box = document.getElementById('messagesContainer');
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    const tx = document.getElementById('messageInput');
+    tx.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        if(this.value === '') this.style.height = 'auto';
+    });
+    
+    // Auto focus
+    tx.focus();
+
+    window.onload = () => {
+        checkSettings();
+        loadChatList();
+    };
+  </script>
 </body>
 </html>

@@ -31,15 +31,20 @@ $db->exec('CREATE TABLE IF NOT EXISTS thumbnails (
 )');
 
 $metaFiles = glob($cacheDir . '/*.meta');
-echo "Toplam meta dosyası bulundu: " . count($metaFiles) . "\n";
+$total = count($metaFiles);
+echo "Toplam meta dosyası bulundu: $total\n";
 
 $migrated = 0;
 $errors = 0;
+$skipped = 0;
 
-foreach ($metaFiles as $metaFile) {
+foreach ($metaFiles as $index => $metaFile) {
+    $current = $index + 1;
+    $percent = round(($current / $total) * 100);
+
     $meta = json_decode(file_get_contents($metaFile), true);
     if (!$meta || !isset($meta['target'])) {
-        echo "Hatalı meta dosyası: $metaFile\n";
+        echo "[$current/$total] [%$percent] Hatalı meta dosyası: $metaFile\n";
         $errors++;
         continue;
     }
@@ -52,16 +57,30 @@ foreach ($metaFiles as $metaFile) {
     $cacheFile = substr($metaFile, 0, -5);
 
     if (!file_exists($cacheFile)) {
-        echo "Cache dosyası bulunamadı: $cacheFile\n";
+        echo "[$current/$total] [%$percent] Cache dosyası bulunamadı: $cacheFile\n";
         $errors++;
         continue;
     }
 
     if (!file_exists($originalPath)) {
-        echo "Orijinal dosya artık yok, atlanıyor: $originalPath\n";
-        // İsterseniz burada hem cache hem meta dosyasını silebilirsiniz
+        echo "[$current/$total] [%$percent] Orijinal dosya yok, siliniyor: $originalPath\n";
         @unlink($metaFile);
         @unlink($cacheFile);
+        $skipped++;
+        continue;
+    }
+
+    // Veritabanında zaten var mı kontrol et (Resume/Idempotency için ek önlem)
+    $checkStmt = $db->prepare('SELECT id FROM thumbnails WHERE original_path = :path AND size = :size AND format = :format');
+    $checkStmt->bindValue(':path', $originalPath, SQLITE3_TEXT);
+    $checkStmt->bindValue(':size', $size, SQLITE3_INTEGER);
+    $checkStmt->bindValue(':format', $format, SQLITE3_TEXT);
+    $checkRes = $checkStmt->execute();
+    if ($checkRes->fetchArray(SQLITE3_ASSOC)) {
+        echo "[$current/$total] [%$percent] Zaten veritabanında var: " . basename($originalPath) . "\n";
+        @unlink($metaFile);
+        @unlink($cacheFile);
+        $skipped++;
         continue;
     }
 
@@ -81,14 +100,17 @@ foreach ($metaFiles as $metaFile) {
         $migrated++;
         @unlink($metaFile);
         @unlink($cacheFile);
+        echo "[$current/$total] [%$percent] Başarıyla taşındı: $filename\n";
     } else {
-        echo "Veritabanına kaydedilemedi: $originalPath\n";
+        echo "[$current/$total] [%$percent] Veritabanına kaydedilemedi: $filename\n";
         $errors++;
     }
 }
 
-echo "Göç tamamlandı.\n";
+echo "\nGöç tamamlandı.\n";
+echo "Toplam: $total\n";
 echo "Başarıyla taşınan: $migrated\n";
+echo "Atlanan/Zaten var olan: $skipped\n";
 echo "Hata sayısı: $errors\n";
 
 // Boşsa .cache dizinini silmeyi deneyelim

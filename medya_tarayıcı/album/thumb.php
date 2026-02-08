@@ -8,8 +8,17 @@ if (php_sapi_name() !== 'cli') {
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+function debug_log($msg)
+{
+    $logFile = __DIR__ . '/thumb_debug.log';
+    $date = date('Y-m-d H:i:s');
+    file_put_contents($logFile, "[$date] $msg\n", FILE_APPEND);
+    error_log($msg); // Keep system log as backup
+}
+
 set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-    error_log("[thumb.php] PHP ERROR: $errstr in $errfile on line $errline");
+    debug_log("[thumb.php] PHP ERROR: $errstr in $errfile on line $errline");
     return false;
 });
 
@@ -47,7 +56,7 @@ if ($isCli) {
     $mediaRoot = ($row = $result->fetchArray(SQLITE3_ASSOC)) ? $row['setting_value'] : '';
     if (!$mediaRoot) {
         $msg = 'media_root not set or empty';
-        error_log('[thumb.php] ' . $msg);
+        debug_log('[thumb.php] ' . $msg);
         http_response_code(500);
         echo $msg;
         exit;
@@ -64,7 +73,7 @@ if ($isCli) {
 
     if (!$baseDir || !is_dir($baseDir)) {
         $msg = 'Medya kök dizini bulunamadı: ' . $mediaRoot;
-        error_log('[thumb.php] ' . $msg);
+        debug_log('[thumb.php] ' . $msg);
         http_response_code(500);
         echo $msg;
         exit;
@@ -95,10 +104,10 @@ if ($isCli) {
     $relPath = isset($_GET['path']) ? ltrim(trim($_GET['path']), '/') : '';
     $size = isset($_GET['size']) ? intval($_GET['size']) : 250;
     $targetFile = $relPath ? realpath($baseDir . '/' . $relPath) : false;
-    error_log("[thumb.php] Istenen relPath: $relPath");
-    error_log("[thumb.php] BaseDir: $baseDir");
-    error_log("[thumb.php] Full path to resolve: " . ($baseDir . '/' . $relPath));
-    error_log("[thumb.php] Cozumlenen targetFile: " . ($targetFile ?: 'FALSE'));
+    debug_log("[thumb.php] Istenen relPath: $relPath");
+    debug_log("[thumb.php] BaseDir: $baseDir");
+    debug_log("[thumb.php] Full path to resolve: " . ($baseDir . '/' . $relPath));
+    debug_log("[thumb.php] Cozumlenen targetFile: " . ($targetFile ?: 'FALSE'));
 }
 
 if (!$targetFile || !is_file($targetFile)) {
@@ -125,7 +134,7 @@ if (isset($_GET['format']) && strtolower($_GET['format']) === 'webp') {
 
 // Orijinal dosyanın mtime bilgisini al (Cache kontrolü için)
 if (!file_exists($targetFile)) {
-    error_log("[thumb.php] HATA: Target file bulunamadı: " . $targetFile);
+    debug_log("[thumb.php] HATA: Target file bulunamadı: " . $targetFile);
 }
 $currentMtime = filemtime($targetFile);
 $filename = basename($targetFile);
@@ -159,7 +168,7 @@ if ($row) {
 
 // Resim/Video Mini Resim Oluşturma Mantığı
 if (!function_exists('imagecreatetruecolor')) {
-    error_log("[thumb.php] HATA: GD kütüphanesi yüklü değil.");
+    debug_log("[thumb.php] HATA: GD kütüphanesi yüklü değil.");
     if ($isCli) {
         echo "GD kütüphanesi yüklü değil.\n";
         exit(2);
@@ -190,17 +199,17 @@ if (in_array($ext, $videoExts)) {
     } else {
         $cmd = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v 2 -vf " . escapeshellarg($vf) . " " . escapeshellarg($tmpCacheFile) . " 2>&1";
     }
-    error_log("[thumb.php] Video isleniyor. Komut: $cmd");
+    debug_log("[thumb.php] Video isleniyor. Komut: $cmd");
     exec($cmd, $ffOut, $ffRc);
 
     if ($ffRc !== 0 || !file_exists($tmpCacheFile)) {
-        error_log("[thumb.php] FFmpeg hatası ($ffRc). Çıkış: " . implode("\n", $ffOut));
+        debug_log("[thumb.php] FFmpeg hatası ($ffRc). Çıkış: " . implode("\n", $ffOut));
         // Hata durumunda (GD ile işlemek için kare çıkar)
         $cmdFrame = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v 2 " . escapeshellarg($tmpCacheFile) . " 2>&1";
-        error_log("[thumb.php] Kare cikariliyor: $cmdFrame");
+        debug_log("[thumb.php] Kare cikariliyor: $cmdFrame");
         exec($cmdFrame, $ffOut2, $ffRc2);
         if ($ffRc2 !== 0) {
-            error_log("[thumb.php] Kare cıkarma hatası ($ffRc2). Çıkış: " . implode("\n", $ffOut2));
+            debug_log("[thumb.php] Kare cıkarma hatası ($ffRc2). Çıkış: " . implode("\n", $ffOut2));
         }
     }
 }

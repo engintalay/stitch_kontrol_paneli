@@ -120,6 +120,9 @@ if (isset($_GET['format']) && strtolower($_GET['format']) === 'webp') {
 }
 
 // Orijinal dosyanın mtime bilgisini al (Cache kontrolü için)
+if (!file_exists($targetFile)) {
+    error_log("[thumb.php] HATA: Target file bulunamadı: " . $targetFile);
+}
 $currentMtime = filemtime($targetFile);
 $filename = basename($targetFile);
 
@@ -152,6 +155,7 @@ if ($row) {
 
 // Resim/Video Mini Resim Oluşturma Mantığı
 if (!function_exists('imagecreatetruecolor')) {
+    error_log("[thumb.php] HATA: GD kütüphanesi yüklü değil.");
     if ($isCli) {
         echo "GD kütüphanesi yüklü değil.\n";
         exit(2);
@@ -167,6 +171,8 @@ $imageExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
 $videoExts = ['mp4', 'mkv', 'webm', 'avi', 'mov', 'mpeg', 'mpg', 'ts'];
 
 $tmpCacheFile = __DIR__ . '/.tmp_thumb_' . md5($targetFile . $size . $outFormat);
+if (file_exists($tmpCacheFile))
+    unlink($tmpCacheFile);
 
 // Eğer video ise FFmpeg kullan
 if (in_array($ext, $videoExts)) {
@@ -180,12 +186,18 @@ if (in_array($ext, $videoExts)) {
     } else {
         $cmd = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v 2 -vf " . escapeshellarg($vf) . " " . escapeshellarg($tmpCacheFile) . " 2>&1";
     }
+    error_log("[thumb.php] Video isleniyor. Komut: $cmd");
     exec($cmd, $ffOut, $ffRc);
 
     if ($ffRc !== 0 || !file_exists($tmpCacheFile)) {
+        error_log("[thumb.php] FFmpeg hatası ($ffRc). Çıkış: " . implode("\n", $ffOut));
         // Hata durumunda (GD ile işlemek için kare çıkar)
         $cmdFrame = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v 2 " . escapeshellarg($tmpCacheFile) . " 2>&1";
-        exec($cmdFrame);
+        error_log("[thumb.php] Kare cikariliyor: $cmdFrame");
+        exec($cmdFrame, $ffOut2, $ffRc2);
+        if ($ffRc2 !== 0) {
+            error_log("[thumb.php] Kare cıkarma hatası ($ffRc2). Çıkış: " . implode("\n", $ffOut2));
+        }
     }
 }
 

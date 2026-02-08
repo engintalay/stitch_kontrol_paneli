@@ -185,6 +185,7 @@ $videoExts = ['mp4', 'mkv', 'webm', 'avi', 'mov', 'mpeg', 'mpg', 'ts'];
 
 $tmpCacheExt = ($outFormat === 'webp' ? '.webp' : '.jpg');
 $tmpCacheFile = __DIR__ . '/.tmp_thumb_' . md5($targetFile . $size . $outFormat) . $tmpCacheExt;
+debug_log("[thumb.php] TmpCacheFile yolu: $tmpCacheFile");
 if (file_exists($tmpCacheFile))
     unlink($tmpCacheFile);
 
@@ -196,9 +197,9 @@ if (in_array($ext, $videoExts)) {
 
     // Doğrudan FFmpeg ile oluşturmayı dene
     if ($outFormat === 'webp') {
-        $cmd = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v " . escapeshellarg($quality) . " -vf " . escapeshellarg($vf) . " " . escapeshellarg($tmpCacheFile) . " 2>&1";
+        $cmd = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v " . escapeshellarg($quality) . " -vf " . escapeshellarg($vf) . " -f image2 " . escapeshellarg($tmpCacheFile) . " 2>&1";
     } else {
-        $cmd = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v 2 -vf " . escapeshellarg($vf) . " " . escapeshellarg($tmpCacheFile) . " 2>&1";
+        $cmd = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v 2 -vf " . escapeshellarg($vf) . " -f image2 " . escapeshellarg($tmpCacheFile) . " 2>&1";
     }
     debug_log("[thumb.php] Video isleniyor. Komut: $cmd");
     exec($cmd, $ffOut, $ffRc);
@@ -206,7 +207,7 @@ if (in_array($ext, $videoExts)) {
     if ($ffRc !== 0 || !file_exists($tmpCacheFile)) {
         debug_log("[thumb.php] FFmpeg hatası ($ffRc). Çıkış: " . implode("\n", $ffOut));
         // Hata durumunda (GD ile işlemek için kare çıkar)
-        $cmdFrame = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v 2 " . escapeshellarg($tmpCacheFile) . " 2>&1";
+        $cmdFrame = "ffmpeg -y -ss " . escapeshellarg($seek) . " -i " . escapeshellarg($targetFile) . " -vframes 1 -q:v 2 -f image2 " . escapeshellarg($tmpCacheFile) . " 2>&1";
         debug_log("[thumb.php] Kare cikariliyor: $cmdFrame");
         exec($cmdFrame, $ffOut2, $ffRc2);
         if ($ffRc2 !== 0) {

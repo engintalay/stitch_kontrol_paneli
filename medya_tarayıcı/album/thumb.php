@@ -183,7 +183,8 @@ $ext = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
 $imageExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
 $videoExts = ['mp4', 'mkv', 'webm', 'avi', 'mov', 'mpeg', 'mpg', 'ts'];
 
-$tmpCacheFile = __DIR__ . '/.tmp_thumb_' . md5($targetFile . $size . $outFormat);
+$tmpCacheExt = ($outFormat === 'webp' ? '.webp' : '.jpg');
+$tmpCacheFile = __DIR__ . '/.tmp_thumb_' . md5($targetFile . $size . $outFormat) . $tmpCacheExt;
 if (file_exists($tmpCacheFile))
     unlink($tmpCacheFile);
 

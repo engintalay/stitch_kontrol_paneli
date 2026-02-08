@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../auth_check.php';
 // /media klasöründen dosya ve klasörleri JSON olarak döner
 header('Content-Type: application/json');
 
-error_log('[media_browser.php] Başlatıldı');
+// error_log('[media_browser.php] Başlatıldı');
 
 // Replace media_root.txt logic with database query
 $db = new SQLite3(__DIR__ . '/../../settings.db');
@@ -27,7 +27,7 @@ if ($mediaRoot === '') {
     exit;
 }
 
-error_log('[media_browser.php] mediaRoot yolu: ' . $mediaRoot);
+// error_log('[media_browser.php] mediaRoot yolu: ' . $mediaRoot);
 $baseDir = false;
 if ($mediaRoot !== '') {
     // Eğer yol absolute değilse, proje köküne göre çöz
@@ -36,40 +36,46 @@ if ($mediaRoot !== '') {
     } else {
         // Proje kökü: media_browser.php dosyasının 2 üstü
         $projectRoot = realpath(__DIR__ . '/../..');
-        error_log('[media_browser.php] projectRoot: ' . $projectRoot);
+        // error_log('[media_browser.php] projectRoot: ' . $projectRoot);
         $baseDir = realpath($projectRoot . '/' . $mediaRoot);
     }
 }
-error_log('[media_browser.php] Çözümlenen baseDir yolu: ' . ($baseDir ?: 'false'));
+// error_log('[media_browser.php] Çözümlenen baseDir yolu: ' . ($baseDir ?: 'false'));
 $relPath = isset($_GET['path']) ? $_GET['path'] : '';
 $relPath = trim($relPath, '/');
-error_log('[media_browser.php] İstenen relatif yol: ' . $relPath);
+// error_log('[media_browser.php] İstenen relatif yol: ' . $relPath);
 // mediaRoot klasörü erişim ve içerik kontrolü
 if (!$baseDir || !is_dir($baseDir)) {
     $msg = 'mediaRoot klasörü bulunamadı veya dizin değil: ' . $mediaRoot . ' (çözümlenen: ' . ($baseDir ?: 'false') . ')';
     error_log('[media_browser.php] ' . $msg);
-    error_log($baseDir);
-    echo json_encode(['error' => $msg, 'debug' => [
-        'mediaRoot' => $mediaRoot,
-        'relPath' => $relPath,
-        'request' => $_REQUEST
-    ]]);
+    // error_log($baseDir);
+    echo json_encode([
+        'error' => $msg,
+        'debug' => [
+            'mediaRoot' => $mediaRoot,
+            'relPath' => $relPath,
+            'request' => $_REQUEST
+        ]
+    ]);
     exit;
 }
 $testFiles = @scandir($baseDir);
-if ($testFiles === false || count(array_diff($testFiles, ['.','..'])) === 0) {
+if ($testFiles === false || count(array_diff($testFiles, ['.', '..'])) === 0) {
     $msg = 'mediaRoot klasörü boş veya okunamıyor: ' . $baseDir;
     error_log('[media_browser.php] ' . $msg);
-    echo json_encode(['error' => $msg, 'debug' => [
-        'mediaRoot' => $mediaRoot,
-        'baseDir' => $baseDir,
-        'relPath' => $relPath,
-        'request' => $_REQUEST
-    ]]);
+    echo json_encode([
+        'error' => $msg,
+        'debug' => [
+            'mediaRoot' => $mediaRoot,
+            'baseDir' => $baseDir,
+            'relPath' => $relPath,
+            'request' => $_REQUEST
+        ]
+    ]);
     exit;
 }
 // Klasör erişimi ve içerik kontrolü başarılı
-error_log('[media_browser.php] mediaRoot klasörü erişim ve içerik kontrolü başarılı: ' . $baseDir);
+// error_log('[media_browser.php] mediaRoot klasörü erişim ve içerik kontrolü başarılı: ' . $baseDir);
 $debug = [];
 $debug['mediaRoot'] = $mediaRoot;
 $debug['baseDir'] = $baseDir;
@@ -94,7 +100,8 @@ $result = [];
 // Geri seçeneği ekle (sadece kök altındaysa)
 if ($relPath) {
     $parentPath = dirname($relPath);
-    if ($parentPath === '.') $parentPath = '';
+    if ($parentPath === '.')
+        $parentPath = '';
     $result[] = [
         'name' => '..',
         'path' => $parentPath,
@@ -102,7 +109,8 @@ if ($relPath) {
     ];
 }
 foreach ($items as $item) {
-    if ($item === '.' || $item === '..') continue;
+    if ($item === '.' || $item === '..')
+        continue;
     $fullPath = $targetDir . '/' . $item;
     $relItemPath = $relPath ? ($relPath . '/' . $item) : $item;
     $type = 'file';
@@ -111,9 +119,9 @@ foreach ($items as $item) {
         $type = 'dir';
     } else {
         $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
-        if (in_array($ext, ['jpg','jpeg','png','gif','bmp','webp'])) {
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
             $type = 'image';
-        } elseif (in_array($ext, ['mp4','webm','mkv','avi','mov'])) {
+        } elseif (in_array($ext, ['mp4', 'webm', 'mkv', 'avi', 'mov'])) {
             $type = 'video';
         }
         $size = is_file($fullPath) ? filesize($fullPath) : null;

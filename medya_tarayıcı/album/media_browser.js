@@ -314,10 +314,33 @@ window.onload = () => {
                 showPrev();
             } else if (e.key === 'ArrowRight') {
                 showNext();
+            } else if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
             }
         }
     });
 };
+
+function toggleFullscreen() {
+    const modalMedia = document.getElementById('modal-media');
+    if (!modalMedia) return;
+    const mediaElement = modalMedia.querySelector('img, video');
+    if (!mediaElement) return;
+
+    if (!document.fullscreenElement) {
+        if (mediaElement.requestFullscreen) {
+            mediaElement.requestFullscreen();
+        } else if (mediaElement.webkitRequestFullscreen) { /* Safari */
+            mediaElement.webkitRequestFullscreen();
+        } else if (mediaElement.msRequestFullscreen) { /* IE11 */
+            mediaElement.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
 
 // Backspace ile üst dizine çıkma (modal açık değilse)
 document.addEventListener('keydown', function (e) {

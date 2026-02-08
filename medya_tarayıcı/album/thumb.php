@@ -95,6 +95,10 @@ if ($isCli) {
     $relPath = isset($_GET['path']) ? ltrim(trim($_GET['path']), '/') : '';
     $size = isset($_GET['size']) ? intval($_GET['size']) : 250;
     $targetFile = $relPath ? realpath($baseDir . '/' . $relPath) : false;
+    error_log("[thumb.php] Istenen relPath: $relPath");
+    error_log("[thumb.php] BaseDir: $baseDir");
+    error_log("[thumb.php] Full path to resolve: " . ($baseDir . '/' . $relPath));
+    error_log("[thumb.php] Cozumlenen targetFile: " . ($targetFile ?: 'FALSE'));
 }
 
 if (!$targetFile || !is_file($targetFile)) {

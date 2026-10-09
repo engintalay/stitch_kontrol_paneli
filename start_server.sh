@@ -10,4 +10,4 @@ fi
 php -v | head -n 1
 
 # Start a simple PHP development server on port 8000, serving the current directory
-php -S localhost:8000
+php -S 0.0.0.0:8000

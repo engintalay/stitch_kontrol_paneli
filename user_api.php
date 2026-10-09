@@ -61,6 +61,11 @@ function error($msg) {
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
+// Durum değiştiren (POST) istekler için CSRF token doğrulaması
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_token();
+}
+
 if ($action === 'list') {
     $q = isset($_GET['q']) ? trim($_GET['q']) : '';
     $where = $q ? 'WHERE email LIKE :q' : '';

@@ -6,6 +6,11 @@ if (!isset($_SESSION['user_role'])) {
     exit;
 }
 
+// CSRF token üretimi (yoksa oluşturulur) — chat_api.php'ye yapılan POST isteklerinde kullanılır
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $title = 'Yapay Zeka Sohbet Botu';
 $icon = 'smart_toy';
 $description = 'Yapay zeka ile sohbet edin';
@@ -232,6 +237,7 @@ try {
 
   <script>
     let activeChatId = null;
+    const CSRF_TOKEN = <?php echo json_encode($_SESSION['csrf_token']); ?>;
 
     function showToast(msg, type='info') {
         const div = document.createElement('div');
@@ -388,6 +394,7 @@ try {
         
         const fd = new FormData();
         fd.append('action', 'save_settings');
+        fd.append('csrf_token', CSRF_TOKEN);
         fd.append('api_key', k);
         fd.append('base_url', b);
         fd.append('model', m);
@@ -463,7 +470,10 @@ try {
 
     async function createNewChat() {
         try {
-            const res = await fetch('chat_api.php?action=new_chat');
+            const fd = new FormData();
+            fd.append('action', 'new_chat');
+            fd.append('csrf_token', CSRF_TOKEN);
+            const res = await fetch('chat_api.php', { method: 'POST', body: fd });
             const data = await res.json();
             if (data.ok) {
                 await loadChatList();
@@ -477,6 +487,7 @@ try {
         try {
             const fd = new FormData();
             fd.append('action', 'delete_chat');
+            fd.append('csrf_token', CSRF_TOKEN);
             fd.append('id', activeChatId);
             const res = await fetch('chat_api.php', { method: 'POST', body: fd });
             const data = await res.json();
@@ -570,6 +581,7 @@ try {
         try {
             const fd = new FormData();
             fd.append('action', 'send_message');
+            fd.append('csrf_token', CSRF_TOKEN);
             fd.append('chat_id', activeChatId);
             fd.append('message', txt);
             

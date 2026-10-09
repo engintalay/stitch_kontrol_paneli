@@ -5,6 +5,10 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: home.php');
     exit;
 }
+// CSRF token üretimi (yoksa oluşturulur) — user_api.php/module_api.php'ye yapılan POST isteklerinde kullanılır
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
@@ -267,6 +271,7 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
     </div>
   </div>
   <script>
+    const CSRF_TOKEN = <?php echo json_encode($_SESSION['csrf_token']); ?>;
     document.getElementById('toggleSessionDebug').addEventListener('click', function(){
       document.getElementById('sessionDebug').classList.toggle('hidden');
     });
@@ -372,7 +377,7 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
       fetch('module_api.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'action=delete&id=' + encodeURIComponent(id)
+        body: 'action=delete&id=' + encodeURIComponent(id) + '&csrf_token=' + encodeURIComponent(CSRF_TOKEN)
       })
         .then(r => r.json())
         .then(data => {
@@ -387,6 +392,7 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
       const isEdit = !!form.get('id');
       const payload = new URLSearchParams();
       payload.append('action', isEdit ? 'update' : 'add');
+      payload.append('csrf_token', CSRF_TOKEN);
       if (isEdit) payload.append('id', form.get('id'));
       payload.append('title', form.get('title'));
       payload.append('icon', form.get('icon'));
@@ -494,7 +500,7 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
               fetch('user_api.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'action=delete&id=' + encodeURIComponent(id)
+                body: 'action=delete&id=' + encodeURIComponent(id) + '&csrf_token=' + encodeURIComponent(CSRF_TOKEN)
               })
                 .then(r => r.json())
                 .then(data => {
@@ -511,6 +517,7 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
               userForm.querySelectorAll('input[type=checkbox][name="permissions[]"]:checked').forEach(cb => permissions.push(cb.value));
               const payload = new URLSearchParams();
               payload.append('action', isEdit ? 'update' : 'add');
+              payload.append('csrf_token', CSRF_TOKEN);
               if (isEdit) payload.append('id', form.get('id'));
               payload.append('email', form.get('email'));
               // Send password if provided (for create it's required, for edit it's optional)

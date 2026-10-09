@@ -47,6 +47,11 @@ try {
 
 $action = $_REQUEST['action'] ?? '';
 
+// Durum değiştiren (POST) istekler için CSRF token doğrulaması
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_token();
+}
+
 // Helper to get a setting
 function getSetting($db, $uid, $key, $default = '') {
     $stmt = $db->prepare('SELECT setting_value FROM user_settings WHERE user_id = :uid AND setting_key = :key');

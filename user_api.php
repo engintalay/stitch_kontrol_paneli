@@ -88,7 +88,7 @@ if ($action === 'add') {
     $role = $_POST['role'] ?? 'user';
     $permissions = $_POST['permissions'] ?? [];
     if (!$email || !$password) error('E-posta ve şifre zorunlu.');
-    $hash = hash('sha256', $password);
+    $hash = password_hash($password, PASSWORD_DEFAULT);
 
     $insertCols = ['email', $passwordColumn, 'role', 'permissions'];
     $placeholders = [':email', ':password', ':role', ':permissions'];
@@ -124,11 +124,7 @@ if ($action === 'update') {
     $stmt->bindValue(':role', $role, SQLITE3_TEXT);
     $stmt->bindValue(':permissions', json_encode($permissions), SQLITE3_TEXT);
     if ($password !== '') {
-        if ($passwordColumn === 'password_hash') {
-            $hash = hash('sha256', $password);
-        } else {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-        }
+        $hash = password_hash($password, PASSWORD_DEFAULT);
         $stmt->bindValue(':password', $hash, SQLITE3_TEXT);
     }
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);

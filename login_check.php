@@ -26,19 +26,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die('Geçersiz istek (CSRF koruması)!');
     }
     $db = new SQLite3('users.db');
-    $password_hash = hash('sha256', $password);
-    //$password_hash = password_hash($password, PASSWORD_DEFAULT);
-    // Kullanıcı adı veya e-posta ile giriş
-    //echo "SELECT id, email, role FROM users WHERE (email = '$username' OR email = '$username' ) AND password_hash = '$password_hash';";
-    //exit(1);
 
-    $stmt = $db->prepare('SELECT id, email, role FROM users WHERE (email = :username OR email = :username2) AND password_hash = :password_hash');
+    // Kullanıcıyı e-posta ile bul (hash karşılaştırması SQL'de değil, PHP'de yapılır;
+    // bcrypt her hesaplamada farklı salt ürettiği için WHERE ile eşleştirilemez)
+    $stmt = $db->prepare('SELECT id, email, role, password_hash FROM users WHERE email = :username');
     $stmt->bindValue(':username', $username, SQLITE3_TEXT);
-    $stmt->bindValue(':username2', $username, SQLITE3_TEXT);
-    $stmt->bindValue(':password_hash', $password_hash, SQLITE3_TEXT);
     $result = $stmt->execute();
     $user = $result->fetchArray(SQLITE3_ASSOC);
+
+    $authenticated = false;
     if ($user) {
+        $storedHash = $user['password_hash'];
+        // Bcrypt/Argon2 formatı ($2y$, $argon2i$, $argon2id$ ile başlar)
+        if (preg_match('/^\$(2y|argon2i|argon2id)\$/', $storedHash)) {
+            $authenticated = password_verify($password, $storedHash);
+        } else {
+            // Eski format: salt'sız SHA-256. Doğrulandıktan sonra bcrypt'e yükselt (lazy migration).
+            $authenticated = hash_equals($storedHash, hash('sha256', $password));
+            if ($authenticated) {
+                $newHash = password_hash($password, PASSWORD_DEFAULT);
+                $upd = $db->prepare('UPDATE users SET password_hash = :hash WHERE id = :id');
+                $upd->bindValue(':hash', $newHash, SQLITE3_TEXT);
+                $upd->bindValue(':id', $user['id'], SQLITE3_INTEGER);
+                $upd->execute();
+            }
+        }
+    }
+
+    if ($authenticated) {
         $_SESSION['login_attempts'] = 0;
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_email'] = $user['email'];

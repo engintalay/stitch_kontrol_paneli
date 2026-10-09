@@ -1,6 +1,9 @@
 <?php
 // passwd.php — CLI aracı: VT'de elle şifre değiştirmek için uygulamanın
-// kullandığı hash algoritmalarının bir şifre için ne ürettiğini gösterir.
+// kullandığı hash algoritmasının (bcrypt / password_hash) bir şifre için
+// ne ürettiğini gösterir.
+// Not: Eski kayıtlarda salt'sız SHA-256 kullanılıyordu; bu format artık
+// kullanılmıyor, login_check.php girişte otomatik olarak bcrypt'e yükseltiyor.
 // Kullanım: php passwd.php <şifre>
 
 if (php_sapi_name() !== 'cli') {
@@ -16,5 +19,4 @@ if ($argc < 2 || trim($argv[1]) === '') {
 
 $password = $argv[1];
 
-echo "sha256: " . hash('sha256', $password) . "\n";
 echo "bcrypt (password_hash): " . password_hash($password, PASSWORD_DEFAULT) . "\n";

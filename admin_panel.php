@@ -264,6 +264,17 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
   </div>
   <script>
     const CSRF_TOKEN = <?php echo json_encode($_SESSION['csrf_token']); ?>;
+
+    // Kullanıcıdan/API'den gelen metni innerHTML içinde güvenle göstermek için HTML-escape eder.
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
     // Menü ve içerik yönetimi
     const menuItems = document.querySelectorAll('.menu-item');
     const contentSections = document.querySelectorAll('.content-section');
@@ -324,12 +335,12 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
           moduleTableBody.innerHTML = data.modules.map(m => `
             <tr class="border-b border-gray-100 dark:border-gray-800">
               <td class="py-2 px-3">${m.id}</td>
-              <td class="py-2 px-3">${m.title || ''}</td>
-              <td class="py-2 px-3">${m.description || ''}</td>
+              <td class="py-2 px-3">${escapeHtml(m.title)}</td>
+              <td class="py-2 px-3">${escapeHtml(m.description)}</td>
               <td class="py-2 px-3">${m.admin_only ? 'Yönetici' : 'Herkes'}</td>
               <td class="py-2 px-3">
-                <button class="text-blue-600 hover:underline mr-2" onclick="editModule(${m.id}, '${(m.title||'').replace(/'/g, "&#39;")}', '${(m.icon||'').replace(/'/g, "&#39;")}', '${(m.description||'').replace(/'/g, "&#39;")}', '${(m.link||'').replace(/'/g, "&#39;")}', ${m.admin_only ? 1 : 0})">Düzenle</button>
-                <button class="text-red-600 hover:underline" onclick="deleteModule(${m.id})">Sil</button>
+                <button class="text-blue-600 hover:underline mr-2 btn-edit-module" data-id="${m.id}" data-title="${escapeHtml(m.title)}" data-icon="${escapeHtml(m.icon)}" data-description="${escapeHtml(m.description)}" data-link="${escapeHtml(m.link)}" data-admin-only="${m.admin_only ? 1 : 0}">Düzenle</button>
+                <button class="text-red-600 hover:underline btn-delete-module" data-id="${m.id}">Sil</button>
               </td>
             </tr>
           `).join('');
@@ -354,11 +365,30 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
     btnAddModule.onclick = () => openModuleModal(false);
     closeModuleModal.onclick = cancelModuleModal.onclick = () => moduleModal.classList.add('hidden');
 
-    window.editModule = function(id, title, icon, description, link, admin_only) {
-      openModuleModal(true, id, title, icon, description, link, admin_only);
-    }
+    // Event delegation: inline onclick yerine data-* attribute'ları okunuyor.
+    // Bu sayede modül başlığı/açıklaması gibi kullanıcı verisi JS string literal'i
+    // olarak değil, HTML attribute olarak taşınır (XSS'e karşı güvenli).
+    moduleTableBody.addEventListener('click', function(e) {
+      const editBtn = e.target.closest('.btn-edit-module');
+      if (editBtn) {
+        openModuleModal(
+          true,
+          editBtn.dataset.id,
+          editBtn.dataset.title,
+          editBtn.dataset.icon,
+          editBtn.dataset.description,
+          editBtn.dataset.link,
+          editBtn.dataset.adminOnly === '1'
+        );
+        return;
+      }
+      const delBtn = e.target.closest('.btn-delete-module');
+      if (delBtn) {
+        deleteModuleById(delBtn.dataset.id);
+      }
+    });
 
-    window.deleteModule = function(id) {
+    function deleteModuleById(id) {
       if (!confirm('Modül silinsin mi?')) return;
       fetch('module_api.php', {
         method: 'POST',
@@ -442,12 +472,12 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
                   userTableBody.innerHTML = data.users.map(u => `
                     <tr class="border-b border-gray-100 dark:border-gray-800">
                       <td class="py-2 px-3">${u.id}</td>
-                      <td class="py-2 px-3">${u.email || ''}</td>
-                      <td class="py-2 px-3">${u.role || ''}</td>
-                      <td class="py-2 px-3">${(u.permissions||[]).map(p => `<span class='inline-block bg-primary/10 text-primary rounded px-2 py-0.5 text-xs mr-1 mb-1'>${p}</span>`).join('')}</td>
+                      <td class="py-2 px-3">${escapeHtml(u.email)}</td>
+                      <td class="py-2 px-3">${escapeHtml(u.role)}</td>
+                      <td class="py-2 px-3">${(u.permissions||[]).map(p => `<span class='inline-block bg-primary/10 text-primary rounded px-2 py-0.5 text-xs mr-1 mb-1'>${escapeHtml(p)}</span>`).join('')}</td>
                       <td class="py-2 px-3">
-                        <button class="text-blue-600 hover:underline mr-2" onclick="editUser(${u.id}, '${(u.email||'').replace(/'/g, "&#39;")}', '${u.role || ''}', ${JSON.stringify(u.permissions||[]).replace(/"/g, '&quot;')})">Düzenle</button>
-                        <button class="text-red-600 hover:underline" onclick="deleteUser(${u.id})">Sil</button>
+                        <button class="text-blue-600 hover:underline mr-2 btn-edit-user" data-id="${u.id}" data-email="${escapeHtml(u.email)}" data-role="${escapeHtml(u.role)}" data-permissions="${escapeHtml(JSON.stringify(u.permissions||[]))}">Düzenle</button>
+                        <button class="text-red-600 hover:underline btn-delete-user" data-id="${u.id}">Sil</button>
                       </td>
                     </tr>
                   `).join('');
@@ -477,11 +507,24 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
             btnAddUser.onclick = () => openUserModal(false);
             closeUserModal.onclick = cancelUserModal.onclick = () => userModal.classList.add('hidden');
 
-            window.editUser = function(id, email, role, permissions) {
-              openUserModal(true, id, email, role, permissions);
-            }
+            // Event delegation: inline onclick yerine data-* attribute'ları okunuyor.
+            // Bu sayede e-posta gibi kullanıcı verisi JS string literal'i olarak değil,
+            // HTML attribute olarak taşınır (XSS'e karşı güvenli).
+            userTableBody.addEventListener('click', function(e) {
+              const editBtn = e.target.closest('.btn-edit-user');
+              if (editBtn) {
+                let permissions = [];
+                try { permissions = JSON.parse(editBtn.dataset.permissions || '[]'); } catch (err) {}
+                openUserModal(true, editBtn.dataset.id, editBtn.dataset.email, editBtn.dataset.role, permissions);
+                return;
+              }
+              const delBtn = e.target.closest('.btn-delete-user');
+              if (delBtn) {
+                deleteUserById(delBtn.dataset.id);
+              }
+            });
 
-            window.deleteUser = function(id) {
+            function deleteUserById(id) {
               if (!confirm('Kullanıcı silinsin mi?')) return;
               fetch('user_api.php', {
                 method: 'POST',

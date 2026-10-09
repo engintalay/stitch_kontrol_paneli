@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../auth_check.php';
 header('Content-Type: text/plain');
 echo "FFmpeg Check\n";
 echo "------------\n";

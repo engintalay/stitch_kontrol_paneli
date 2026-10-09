@@ -352,7 +352,11 @@ try {
             const data = await res.json();
             if (data.ok) {
                 document.getElementById('baseUrlInput').value = data.base_url || 'https://api.openai.com/v1';
-                document.getElementById('apiKeyInput').value = data.api_key || '';
+                // Güvenlik: Sunucu artık gerçek API key'i döndürmüyor, sadece maskelenmiş
+                // halini (örn. "...ab12") gösteriyor. Input boş bırakılırsa mevcut key korunur.
+                const apiKeyInput = document.getElementById('apiKeyInput');
+                apiKeyInput.value = '';
+                apiKeyInput.placeholder = data.api_key_masked ? ('Kayıtlı: ' + data.api_key_masked + ' (değiştirmek için yeni key girin)') : 'sk-...';
                 
                 // Set model
                 const savedModel = data.model || 'gpt-4o';
@@ -371,12 +375,10 @@ try {
                 }
                 sel.value = savedModel;
                 
-                if (!data.has_key) { 
+                if (!data.api_key_masked) { 
                     // Optional open
                 } else {
                     // Try to check connection on load if key exists
-                    // checkConnection(); // Maybe too aggressive on load? Let's just check silently?
-                    // User asked for a light. Let's do it.
                     checkConnection();
                 }
             }

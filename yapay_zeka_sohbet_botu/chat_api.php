@@ -1,6 +1,7 @@
 <?php
 // yapay_zeka_sohbet_botu/chat_api.php
 require_once __DIR__ . '/../auth_check.php';
+require_once __DIR__ . '/../crypto_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -89,13 +90,13 @@ if ($action === 'save_settings') {
     $apiKey = trim($_POST['api_key'] ?? '');
     $baseUrl = trim($_POST['base_url'] ?? '');
     $model = trim($_POST['model'] ?? '');
-    
-    // API Key can be empty for some local LLMs but usually needed. Let's allow empty if user insists, but warn if nothing works.
-    // Actually, let's keep it required for now as most need it or a dummy one.
-    // if (!$apiKey) error('API Anahtarı boş olamaz.');
-    
+
     $sDb = new SQLite3($settingsDbPath);
-    setSetting($sDb, $userId, 'openai_api_key', $apiKey);
+    // API key boşsa mevcut (şifreli) değeri koru — frontend tam key'i geri almadığı
+    // için kullanıcı "değiştirmeden kaydet" yaptığında key'i silmemeliyiz.
+    if ($apiKey !== '') {
+        setSetting($sDb, $userId, 'openai_api_key', encrypt_secret($apiKey));
+    }
     setSetting($sDb, $userId, 'openai_base_url', $baseUrl);
     setSetting($sDb, $userId, 'openai_model', $model);
     
@@ -104,13 +105,13 @@ if ($action === 'save_settings') {
 
 if ($action === 'get_settings') {
     $sDb = new SQLite3($settingsDbPath);
-    $apiKey = getSetting($sDb, $userId, 'openai_api_key', '');
+    $apiKey = decrypt_secret(getSetting($sDb, $userId, 'openai_api_key', ''));
     $baseUrl = getSetting($sDb, $userId, 'openai_base_url', 'https://api.openai.com/v1');
     $model = getSetting($sDb, $userId, 'openai_model', 'gpt-4o');
     
     jsonOut([
-        'ok' => true, 
-        'api_key' => $apiKey, 
+        'ok' => true,
+        'api_key_masked' => mask_secret($apiKey),
         'base_url' => $baseUrl, 
         'model' => $model,
         'has_key' => !empty($apiKey)
@@ -163,7 +164,7 @@ if ($action === 'get_chat') {
 
 if ($action === 'list_models') {
     $sDb = new SQLite3($settingsDbPath);
-    $apiKey = getSetting($sDb, $userId, 'openai_api_key', '');
+    $apiKey = decrypt_secret(getSetting($sDb, $userId, 'openai_api_key', ''));
     $baseUrl = getSetting($sDb, $userId, 'openai_base_url', 'https://api.openai.com/v1');
     
     $baseUrl = rtrim($baseUrl, '/');
@@ -223,7 +224,7 @@ if ($action === 'send_message') {
 
     // 1. Get Settings
     $sDb = new SQLite3($settingsDbPath);
-    $apiKey = getSetting($sDb, $userId, 'openai_api_key', '');
+    $apiKey = decrypt_secret(getSetting($sDb, $userId, 'openai_api_key', ''));
     $baseUrl = getSetting($sDb, $userId, 'openai_base_url', 'https://api.openai.com/v1');
     $model = getSetting($sDb, $userId, 'openai_model', 'gpt-4o');
     

@@ -38,12 +38,20 @@ $writable = is_writable(__DIR__);
 $systemTheme = 'auto';
 try {
     $__db_tmp = new SQLite3(__DIR__ . '/settings.db');
+    // Tablo henüz oluşturulmamış olabilir (örn. kontrol_paneli/code.php hiç açılmadıysa)
+    $__db_tmp->exec('CREATE TABLE IF NOT EXISTS settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      setting_key TEXT NOT NULL UNIQUE,
+      setting_value TEXT NOT NULL
+    )');
     $__stmt_theme = $__db_tmp->prepare('SELECT setting_value FROM settings WHERE setting_key = :key');
-    $__stmt_theme->bindValue(':key', 'system_theme', SQLITE3_TEXT);
-    $__res_theme = $__stmt_theme->execute();
-    $__row_theme = $__res_theme->fetchArray(SQLITE3_ASSOC);
-    if ($__row_theme && !empty($__row_theme['setting_value'])) {
-        $systemTheme = $__row_theme['setting_value'];
+    if ($__stmt_theme) {
+        $__stmt_theme->bindValue(':key', 'system_theme', SQLITE3_TEXT);
+        $__res_theme = $__stmt_theme->execute();
+        $__row_theme = $__res_theme->fetchArray(SQLITE3_ASSOC);
+        if ($__row_theme && !empty($__row_theme['setting_value'])) {
+            $systemTheme = $__row_theme['setting_value'];
+        }
     }
 } catch (Exception $e) {}
 

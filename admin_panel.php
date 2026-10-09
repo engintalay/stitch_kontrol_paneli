@@ -100,7 +100,6 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
           <span class="font-bold text-xl text-primary">Admin Paneli</span>
         </div>
         <div class="flex items-center gap-3">
-          <button id="toggleSessionDebug" class="mr-3 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-sm rounded">Oturum Bilgisi</button>
           <a href="home.php" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ana Sayfa</a>
         </div>
       </header>
@@ -261,23 +260,10 @@ function h($str) { return htmlspecialchars($str, ENT_QUOTES, 'UTF-8'); }
           </div>
         </div>
       </main>
-      <div id="sessionDebug" class="hidden fixed bottom-4 right-4 w-80 bg-white dark:bg-[#23272f] border border-gray-200 dark:border-gray-700 rounded p-4 shadow-lg text-xs overflow-auto max-h-60">
-        <div class="flex justify-between items-center mb-2">
-          <strong>SESSION</strong>
-          <button id="closeSessionDebug" class="text-sm text-gray-500">Kapat</button>
-        </div>
-        <pre style="white-space:pre-wrap;word-break:break-word;"><?php echo htmlspecialchars(print_r($_SESSION, true)); ?></pre>
-      </div>
     </div>
   </div>
   <script>
     const CSRF_TOKEN = <?php echo json_encode($_SESSION['csrf_token']); ?>;
-    document.getElementById('toggleSessionDebug').addEventListener('click', function(){
-      document.getElementById('sessionDebug').classList.toggle('hidden');
-    });
-    document.getElementById('closeSessionDebug').addEventListener('click', function(){
-      document.getElementById('sessionDebug').classList.add('hidden');
-    });
     // Menü ve içerik yönetimi
     const menuItems = document.querySelectorAll('.menu-item');
     const contentSections = document.querySelectorAll('.content-section');

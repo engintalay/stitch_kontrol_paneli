@@ -2,6 +2,14 @@
 // user_api.php - AJAX endpoint for user management
 require_once __DIR__ . '/auth_check.php';
 
+// Sadece admin rolündeki kullanıcılar bu API'yi kullanabilir
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    http_response_code(403);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => false, 'error' => 'Bu işlem için yönetici yetkisi gerekli.']);
+    exit;
+}
+
 $db = new SQLite3(__DIR__ . '/users.db');
 $db->exec('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, password TEXT, role TEXT, permissions TEXT DEFAULT "")');
 
